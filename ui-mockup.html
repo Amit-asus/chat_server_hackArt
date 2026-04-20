@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ChatApp — UI Mockup</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  * { box-sizing: border-box; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; }
+  .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+  .scrollbar-thin::-webkit-scrollbar-thumb { background: #374151; border-radius: 2px; }
+  .scrollbar-thin::-webkit-scrollbar-track { background: transparent; }
+
+  /* Page tabs */
+  .page { display: none; }
+  .page.active { display: flex; }
+
+  /* Presence dots */
+  .dot-online  { background: #22c55e; }
+  .dot-afk     { background: #f59e0b; }
+  .dot-offline { background: #6b7280; }
+
+  /* Hover actions on messages */
+  .msg-actions { opacity: 0; transition: opacity 0.15s; }
+  .msg-row:hover .msg-actions { opacity: 1; }
+
+  /* Modal */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 50; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+</style>
+</head>
+<body class="bg-gray-950 text-gray-100 h-screen overflow-hidden flex flex-col">
+
+<!-- ═══════════════════════════════════════════════════════════
+     NAV BAR
+════════════════════════════════════════════════════════════ -->
+<header class="bg-gray-900 border-b border-gray-700 px-4 py-2 flex items-center gap-6 shrink-0 z-10">
+  <span class="text-indigo-400 font-bold text-lg tracking-tight">💬 ChatApp</span>
+  <nav class="flex gap-1 text-sm ml-4">
+    <button onclick="showPage('chat')"    class="nav-btn px-3 py-1.5 rounded hover:bg-gray-700 text-gray-300 hover:text-white transition">Public Rooms</button>
+    <button onclick="showPage('private')" class="nav-btn px-3 py-1.5 rounded hover:bg-gray-700 text-gray-300 hover:text-white transition">Private Rooms</button>
+    <button onclick="showPage('contacts')"class="nav-btn px-3 py-1.5 rounded hover:bg-gray-700 text-gray-300 hover:text-white transition">Contacts</button>
+    <button onclick="showPage('sessions')"class="nav-btn px-3 py-1.5 rounded hover:bg-gray-700 text-gray-300 hover:text-white transition">Sessions</button>
+  </nav>
+  <div class="ml-auto flex items-center gap-3">
+    <div class="flex items-center gap-2 text-sm cursor-pointer hover:bg-gray-700 px-2 py-1 rounded" onclick="showPage('profile')">
+      <div class="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold">A</div>
+      <span class="text-gray-300">alice ▾</span>
+    </div>
+    <button onclick="showPage('login')" class="text-sm text-gray-400 hover:text-white px-3 py-1.5 rounded hover:bg-gray-700 transition">Sign out</button>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGE: LOGIN
+════════════════════════════════════════════════════════════ -->
+<div id="page-login" class="page active flex-1 items-center justify-center bg-gray-950">
+  <div class="flex gap-8">
+    <!-- Sign In -->
+    <div class="bg-gray-900 border border-gray-700 rounded-xl p-8 w-80 shadow-xl">
+      <h2 class="text-xl font-semibold mb-6 text-white">Sign In</h2>
+      <label class="block text-xs text-gray-400 mb-1">Email</label>
+      <input class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:border-indigo-500 text-white" placeholder="you@example.com" />
+      <label class="block text-xs text-gray-400 mb-1">Password</label>
+      <input type="password" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm mb-4 focus:outline-none focus:border-indigo-500 text-white" placeholder="••••••••" />
+      <label class="flex items-center gap-2 text-sm text-gray-400 mb-5 cursor-pointer">
+        <input type="checkbox" class="accent-indigo-500" /> Keep me signed in
+      </label>
+      <button onclick="showPage('chat')" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg py-2 text-sm font-medium transition">Sign in</button>
+      <p class="text-center text-xs text-indigo-400 mt-4 cursor-pointer hover:underline" onclick="showPage('forgot')">Forgot password?</p>
+    </div>
+    <!-- Register -->
+    <div class="bg-gray-900 border border-gray-700 rounded-xl p-8 w-80 shadow-xl">
+      <h2 class="text-xl font-semibold mb-6 text-white">Register</h2>
+      <label class="block text-xs text-gray-400 mb-1">Email</label>
+      <input class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-indigo-500 text-white" placeholder="you@example.com" />
+      <label class="block text-xs text-gray-400 mb-1">Username</label>
+      <input class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-indigo-500 text-white" placeholder="alice" />
+      <label class="block text-xs text-gray-400 mb-1">Password</label>
+      <input type="password" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm mb-3 focus:outline-none focus:border-indigo-500 text-white" placeholder="••••••••" />
+      <label class="block text-xs text-gray-400 mb-1">Confirm Password</label>
+      <input type="password" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm mb-5 focus:outline-none focus:border-indigo-500 text-white" placeholder="••••••••" />
+      <button class="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg py-2 text-sm font-medium transition">Create account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGE: FORGOT PASSWORD
+════════════════════════════════════════════════════════════ -->
+<div id="page-forgot" class="page flex-1 items-center justify-center bg-gray-950">
+  <div class="bg-gray-900 border border-gray-700 rounded-xl p-8 w-96 shadow-xl">
+    <h2 class="text-xl font-semibold mb-2 text-white">Forgot Password</h2>
+    <p class="text-sm text-gray-400 mb-5">Enter your email to receive a reset link.</p>
+    <input class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm mb-5 focus:outline-none focus:border-indigo-500 text-white" placeholder="you@example.com" />
+    <button class="w-full bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg py-2 text-sm font-medium transition">Send reset link</button>
+    <p class="text-center text-xs text-gray-500 mt-4 cursor-pointer hover:text-gray-300" onclick="showPage('login')">← Back to sign in</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGE: MAIN CHAT
+════════════════════════════════════════════════════════════ -->
+<div id="page-chat" class="page flex-1 overflow-hidden">
+
+  <!-- LEFT SIDEBAR -->
+  <aside class="w-64 bg-gray-900 border-r border-gray-700 flex flex-col shrink-0">
+    <div class="p-3 border-b border-gray-700">
+      <input class="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-indigo-500 text-gray-300 placeholder-gray-500" placeholder="Search rooms & contacts..." />
+    </div>
+
+    <div class="flex-1 overflow-y-auto scrollbar-thin p-2 space-y-1">
+      <!-- ROOMS section -->
+      <div>
+        <div class="flex items-center justify-between px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          <span>Rooms</span>
+          <button onclick="openModal('create-room')" class="text-indigo-400 hover:text-indigo-300 text-lg leading-none" title="Create room">+</button>
+        </div>
+
+        <!-- Public rooms group -->
+        <div class="mt-1">
+          <button class="w-full flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-200" onclick="toggleGroup('pub-rooms')">
+            <span id="pub-arrow">▾</span> <span>Public Rooms</span>
+          </button>
+          <div id="pub-rooms" class="ml-2 space-y-0.5">
+            <button onclick="selectRoom('general')" class="room-item w-full flex items-center justify-between px-2 py-1.5 rounded-lg bg-indigo-700 text-white text-sm">
+              <span># general</span>
+              <span class="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 leading-none">3</span>
+            </button>
+            <button onclick="selectRoom('engineering')" class="room-item w-full flex items-center px-2 py-1.5 rounded-lg hover:bg-gray-700 text-gray-300 text-sm text-left">
+              # engineering
+            </button>
+            <button onclick="selectRoom('random')" class="room-item w-full flex items-center px-2 py-1.5 rounded-lg hover:bg-gray-700 text-gray-300 text-sm text-left">
+              # random
+            </button>
+          </div>
+        </div>
+
+        <!-- Private rooms group -->
+        <div class="mt-2">
+          <button class="w-full flex items-center gap-1 px-2 py-1 text-xs text-gray-400 hover:text-gray-200" onclick="toggleGroup('priv-rooms')">
+            <span>▾</span> <span>Private Rooms</span>
+          </button>
+          <div id="priv-rooms" class="ml-2 space-y-0.5">
+            <button class="room-item w-full flex items-center justify-between px-2 py-1.5 rounded-lg hover:bg-gray-700 text-gray-300 text-sm">
+              <span>🔒 core-team</span>
+              <span class="bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 leading-none">1</span>
+            </button>
+            <button class="room-item w-full flex items-center px-2 py-1.5 rounded-lg hover:bg-gray-700 text-gray-300 text-sm text-left">
+              🔒 ops
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- CONTACTS section -->
+      <div class="mt-3">
+        <div class="flex items-center justify-between px-2 py-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+          <span>Contacts</span>
+          <button class="text-indigo-400 hover:text-indigo-300 text-lg leading-none" title="Add friend">+</button>
+        </div>
+        <div class="ml-1 space-y-0.5 mt-1">
+          <button onclick="selectDM('Alice')" class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-700 text-sm text-left">
+            <span class="w-2 h-2 rounded-full dot-online inline-block shrink-0"></span>
+            <span class="text-gray-200">Alice</span>
+          </button>
+          <button onclick="selectDM('Bob')" class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-700 text-sm text-left">
+            <span class="w-2 h-2 rounded-full dot-afk inline-block shrink-0"></span>
+            <span class="text-gray-300">Bob</span>
+            <span class="ml-auto bg-red-500 text-white text-xs rounded-full px-1.5 py-0.5 leading-none">2</span>
+          </button>
+          <button class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-700 text-sm text-left">
+            <span class="w-2 h-2 rounded-full dot-offline inline-block shrink-0"></span>
+            <span class="text-gray-500">Carol</span>
+          </button>
+          <button class="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-700 text-sm text-left">
+            <span class="w-2 h-2 rounded-full dot-offline inline-block shrink-0"></span>
+            <span class="text-gray-500">Dave</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CHAT AREA -->
+  <main class="flex-1 flex flex-col overflow-hidden">
+    <!-- Room header -->
+    <div class="bg-gray-900 border-b border-gray-700 px-4 py-3 flex items-center gap-3 shrink-0">
+      <div>
+        <h2 class="font-semibold text-white text-sm" id="chat-title"># general</h2>
+        <p class="text-xs text-gray-400" id="chat-desc">General discussions — open to everyone</p>
+      </div>
+      <div class="ml-auto flex gap-2">
+        <button onclick="openModal('manage-room')" class="text-xs text-gray-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-gray-700 border border-gray-600 transition">Manage room</button>
+        <button class="text-xs text-gray-400 hover:text-white px-3 py-1.5 rounded-lg hover:bg-gray-700 border border-gray-600 transition">Invite user</button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="flex-1 overflow-y-auto scrollbar-thin px-4 py-4 space-y-1" id="messages">
+      <div class="text-center text-xs text-gray-600 py-2">— older messages —</div>
+
+      <!-- Message group: Bob -->
+      <div class="msg-row flex gap-3 hover:bg-gray-800/40 px-2 py-1 rounded-lg group">
+        <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">B</div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-baseline gap-2">
+            <span class="text-sm font-semibold text-blue-400">Bob</span>
+            <span class="text-xs text-gray-500">10:21</span>
+          </div>
+          <p class="text-sm text-gray-200 mt-0.5">Hello team! 👋 Anyone looked at the new spec yet?</p>
+        </div>
+        <div class="msg-actions flex items-start gap-1 shrink-0 pt-0.5">
+          <button onclick="setReply('Bob')" class="text-gray-500 hover:text-gray-300 text-xs px-1.5 py-0.5 rounded hover:bg-gray-700" title="Reply">↩</button>
+          <button class="text-gray-500 hover:text-gray-300 text-xs px-1.5 py-0.5 rounded hover:bg-gray-700" title="React">😊</button>
+        </div>
+      </div>
+
+      <!-- Message group: Alice -->
+      <div class="msg-row flex gap-3 hover:bg-gray-800/40 px-2 py-1 rounded-lg group">
+        <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">A</div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-baseline gap-2">
+            <span class="text-sm font-semibold text-indigo-400">Alice</span>
+            <span class="text-xs text-gray-500">10:22</span>
+          </div>
+          <p class="text-sm text-gray-200 mt-0.5">Uploading the spec now...</p>
+          <!-- File attachment -->
+          <div class="mt-2 inline-flex items-center gap-3 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm max-w-xs">
+            <span class="text-2xl">📄</span>
+            <div>
+              <p class="text-gray-200 font-medium text-xs">spec-v3.pdf</p>
+              <p class="text-gray-500 text-xs">latest requirements • 2.4 MB</p>
+            </div>
+            <button class="text-indigo-400 hover:text-indigo-300 text-xs ml-2">↓</button>
+          </div>
+        </div>
+        <div class="msg-actions flex items-start gap-1 shrink-0 pt-0.5">
+          <button onclick="setReply('Alice')" class="text-gray-500 hover:text-gray-300 text-xs px-1.5 py-0.5 rounded hover:bg-gray-700" title="Reply">↩</button>
+          <button class="text-gray-500 hover:text-gray-300 text-xs px-1.5 py-0.5 rounded hover:bg-gray-700" title="React">😊</button>
+        </div>
+      </div>
+
+      <!-- Message group: You -->
+      <div class="msg-row flex gap-3 hover:bg-gray-800/40 px-2 py-1 rounded-lg group">
+        <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">Y</div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-baseline gap-2">
+            <span class="text-sm font-semibold text-emerald-400">You</span>
+            <span class="text-xs text-gray-500">10:23</span>
+          </div>
+          <p class="text-sm text-gray-200 mt-0.5">Thanks Alice! Reading through it now.</p>
+        </div>
+        <div class="msg-actions flex items-start gap-1 shrink-0 pt-0.5">
+          <button class="text-gray-500 hover:text-gray-300 text-xs px-1.5 py-0.5 rounded hover:bg-gray-700" title="Edit">✏</button>
+          <button class="text-gray-500 hover:text-gray-300 text-xs px-1.5 py-0.5 rounded hover:bg-gray-700" title="Delete">🗑</button>
+        </div>
+      </div>
+
+      <!-- Carol replies to Bob -->
+      <div class="msg-row flex gap-3 hover:bg-gray-800/40 px-2 py-1 rounded-lg group">
+        <div class="w-8 h-8 rounded-full bg-rose-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">C</div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-baseline gap-2">
+            <span class="text-sm font-semibold text-rose-400">Carol</span>
+            <span class="text-xs text-gray-500">10:25</span>
+            <span class="text-xs text-gray-600 italic">edited</span>
+          </div>
+          <!-- Reply quote -->
+          <div class="border-l-2 border-blue-500 pl-2 py-0.5 mb-1 rounded-r bg-gray-800/50">
+            <span class="text-xs text-blue-400 font-medium">Bob</span>
+            <p class="text-xs text-gray-400">Hello team! 👋 Anyone looked at the new spec yet?</p>
+          </div>
+          <p class="text-sm text-gray-200">Can we make this private? Feels like sensitive info 🤔</p>
+        </div>
+        <div class="msg-actions flex items-start gap-1 shrink-0 pt-0.5">
+          <button onclick="setReply('Carol')" class="text-gray-500 hover:text-gray-300 text-xs px-1.5 py-0.5 rounded hover:bg-gray-700" title="Reply">↩</button>
+          <button class="text-gray-500 hover:text-gray-300 text-xs px-1.5 py-0.5 rounded hover:bg-gray-700" title="React">😊</button>
+          <button class="text-gray-500 hover:text-red-400 text-xs px-1.5 py-0.5 rounded hover:bg-gray-700" title="Delete (admin)">🗑</button>
+        </div>
+      </div>
+
+      <!-- Image message -->
+      <div class="msg-row flex gap-3 hover:bg-gray-800/40 px-2 py-1 rounded-lg group">
+        <div class="w-8 h-8 rounded-full bg-amber-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">D</div>
+        <div class="flex-1 min-w-0">
+          <div class="flex items-baseline gap-2">
+            <span class="text-sm font-semibold text-amber-400">Dave</span>
+            <span class="text-xs text-gray-500">10:27</span>
+          </div>
+          <p class="text-sm text-gray-200 mb-2">Here's the architecture diagram I made:</p>
+          <div class="bg-gray-700 rounded-lg w-48 h-28 flex items-center justify-center text-gray-500 text-xs border border-gray-600">
+            🖼 diagram.png<br/><span class="text-gray-600">1.2 MB</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reply indicator -->
+    <div id="reply-bar" class="hidden bg-gray-800 border-t border-gray-700 px-4 py-2 flex items-center gap-2 text-sm shrink-0">
+      <span class="text-gray-400 text-xs">↩ Replying to</span>
+      <span id="reply-name" class="text-indigo-400 text-xs font-medium"></span>
+      <button onclick="clearReply()" class="ml-auto text-gray-500 hover:text-white text-xs">✕</button>
+    </div>
+
+    <!-- Input area -->
+    <div class="bg-gray-900 border-t border-gray-700 p-3 shrink-0">
+      <div class="bg-gray-800 border border-gray-600 rounded-xl overflow-hidden focus-within:border-indigo-500 transition">
+        <textarea id="msg-input" rows="2" class="w-full bg-transparent px-4 pt-3 pb-1 text-sm text-gray-200 placeholder-gray-500 focus:outline-none resize-none" placeholder="Message #general..."></textarea>
+        <div class="flex items-center gap-2 px-3 pb-2">
+          <button class="text-gray-500 hover:text-gray-300 text-lg transition" title="Emoji">😊</button>
+          <button class="text-gray-500 hover:text-gray-300 text-lg transition" title="Attach file">📎</button>
+          <button class="text-gray-500 hover:text-gray-300 text-base transition" title="Image">🖼</button>
+          <div class="ml-auto">
+            <button onclick="sendMessage()" class="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium px-4 py-1.5 rounded-lg transition">Send</button>
+          </div>
+        </div>
+      </div>
+      <p class="text-xs text-gray-600 mt-1 px-1">Shift+Enter for new line · Ctrl+V to paste image</p>
+    </div>
+  </main>
+
+  <!-- RIGHT PANEL: Members -->
+  <aside class="w-52 bg-gray-900 border-l border-gray-700 flex flex-col shrink-0 overflow-hidden">
+    <div class="px-3 py-3 border-b border-gray-700">
+      <h3 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Members (38)</h3>
+    </div>
+    <div class="flex-1 overflow-y-auto scrollbar-thin p-2 space-y-0.5">
+      <p class="text-xs text-gray-600 px-2 py-1">Online — 3</p>
+      <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-800 cursor-pointer group">
+        <span class="w-2 h-2 rounded-full dot-online shrink-0"></span>
+        <div class="w-6 h-6 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold">A</div>
+        <span class="text-sm text-gray-200">alice</span>
+        <span class="ml-auto text-xs text-yellow-500 hidden group-hover:block">★ owner</span>
+      </div>
+      <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-800 cursor-pointer">
+        <span class="w-2 h-2 rounded-full dot-online shrink-0"></span>
+        <div class="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold">B</div>
+        <span class="text-sm text-gray-200">bob</span>
+      </div>
+      <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-800 cursor-pointer">
+        <span class="w-2 h-2 rounded-full dot-online shrink-0"></span>
+        <div class="w-6 h-6 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-bold">Y</div>
+        <span class="text-sm text-gray-200">you</span>
+      </div>
+      <p class="text-xs text-gray-600 px-2 py-1 mt-2">AFK — 2</p>
+      <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-800 cursor-pointer">
+        <span class="w-2 h-2 rounded-full dot-afk shrink-0"></span>
+        <div class="w-6 h-6 rounded-full bg-amber-600 flex items-center justify-center text-xs font-bold">D</div>
+        <span class="text-sm text-gray-400">dave</span>
+        <span class="text-xs text-amber-500 ml-auto">★ admin</span>
+      </div>
+      <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-800 cursor-pointer">
+        <span class="w-2 h-2 rounded-full dot-afk shrink-0"></span>
+        <div class="w-6 h-6 rounded-full bg-rose-600 flex items-center justify-center text-xs font-bold">C</div>
+        <span class="text-sm text-gray-400">carol</span>
+      </div>
+      <p class="text-xs text-gray-600 px-2 py-1 mt-2">Offline — 33</p>
+      <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-800 cursor-pointer">
+        <span class="w-2 h-2 rounded-full dot-offline shrink-0"></span>
+        <div class="w-6 h-6 rounded-full bg-gray-600 flex items-center justify-center text-xs font-bold">M</div>
+        <span class="text-sm text-gray-500">mike</span>
+      </div>
+      <div class="flex items-center gap-2 px-2 py-1.5 rounded-lg hover:bg-gray-800 cursor-pointer">
+        <span class="w-2 h-2 rounded-full dot-offline shrink-0"></span>
+        <div class="w-6 h-6 rounded-full bg-gray-600 flex items-center justify-center text-xs font-bold">E</div>
+        <span class="text-sm text-gray-500">eve</span>
+      </div>
+    </div>
+    <div class="p-2 border-t border-gray-700 space-y-1">
+      <div class="bg-gray-800 rounded-lg p-2 text-xs text-gray-400">
+        <p class="font-medium text-gray-300 mb-1"># general</p>
+        <p class="text-gray-500">Public room</p>
+        <p class="text-gray-500">Owner: <span class="text-indigo-400">alice</span></p>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGE: CONTACTS
+════════════════════════════════════════════════════════════ -->
+<div id="page-contacts" class="page flex-1 overflow-hidden">
+  <div class="max-w-2xl mx-auto p-6">
+    <div class="flex items-center justify-between mb-6">
+      <h1 class="text-xl font-semibold text-white">Contacts</h1>
+      <button class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-2 rounded-lg transition">Add Friend</button>
+    </div>
+    <!-- Pending requests -->
+    <div class="bg-gray-900 border border-gray-700 rounded-xl mb-4 overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-700 text-sm font-medium text-gray-300">Pending Requests (2)</div>
+      <div class="divide-y divide-gray-700">
+        <div class="px-4 py-3 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-xs font-bold">F</div>
+          <div>
+            <p class="text-sm text-gray-200">frank</p>
+            <p class="text-xs text-gray-500">"Hey, want to connect!"</p>
+          </div>
+          <div class="ml-auto flex gap-2">
+            <button class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded transition">Accept</button>
+            <button class="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-1 rounded transition">Decline</button>
+          </div>
+        </div>
+        <div class="px-4 py-3 flex items-center gap-3">
+          <div class="w-8 h-8 rounded-full bg-teal-600 flex items-center justify-center text-xs font-bold">G</div>
+          <div>
+            <p class="text-sm text-gray-200">grace</p>
+            <p class="text-xs text-gray-500">No message</p>
+          </div>
+          <div class="ml-auto flex gap-2">
+            <button class="text-xs bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded transition">Accept</button>
+            <button class="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-1 rounded transition">Decline</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Friends list -->
+    <div class="bg-gray-900 border border-gray-700 rounded-xl overflow-hidden">
+      <div class="px-4 py-3 border-b border-gray-700 text-sm font-medium text-gray-300">Friends (4)</div>
+      <div class="divide-y divide-gray-700">
+        <div class="px-4 py-3 flex items-center gap-3">
+          <span class="w-2 h-2 rounded-full dot-online mt-0.5 shrink-0"></span>
+          <div class="w-8 h-8 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold">A</div>
+          <p class="text-sm text-gray-200">alice</p>
+          <div class="ml-auto flex gap-2">
+            <button class="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-1 rounded transition">Message</button>
+            <button class="text-xs bg-gray-700 hover:bg-red-700 text-gray-400 hover:text-white px-3 py-1 rounded transition">Remove</button>
+            <button class="text-xs bg-gray-700 hover:bg-red-700 text-gray-400 hover:text-white px-3 py-1 rounded transition">Block</button>
+          </div>
+        </div>
+        <div class="px-4 py-3 flex items-center gap-3">
+          <span class="w-2 h-2 rounded-full dot-afk mt-0.5 shrink-0"></span>
+          <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold">B</div>
+          <p class="text-sm text-gray-300">bob</p>
+          <span class="text-xs text-amber-500 ml-1">AFK</span>
+          <div class="ml-auto flex gap-2">
+            <button class="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-1 rounded transition">Message</button>
+            <button class="text-xs bg-gray-700 hover:bg-red-700 text-gray-400 hover:text-white px-3 py-1 rounded transition">Remove</button>
+            <button class="text-xs bg-gray-700 hover:bg-red-700 text-gray-400 hover:text-white px-3 py-1 rounded transition">Block</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGE: SESSIONS
+════════════════════════════════════════════════════════════ -->
+<div id="page-sessions" class="page flex-1 overflow-hidden">
+  <div class="max-w-2xl mx-auto p-6">
+    <h1 class="text-xl font-semibold text-white mb-6">Active Sessions</h1>
+    <div class="bg-gray-900 border border-gray-700 rounded-xl overflow-hidden">
+      <div class="divide-y divide-gray-700">
+        <div class="px-4 py-4 flex items-center gap-4">
+          <span class="text-2xl">💻</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200">Chrome on Windows · <span class="text-green-400 text-xs">Current session</span></p>
+            <p class="text-xs text-gray-500">IP: 192.168.1.10 · Last active: just now</p>
+          </div>
+          <button disabled class="ml-auto text-xs text-gray-600 cursor-not-allowed px-3 py-1 rounded border border-gray-700">Current</button>
+        </div>
+        <div class="px-4 py-4 flex items-center gap-4">
+          <span class="text-2xl">📱</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200">Firefox on macOS</p>
+            <p class="text-xs text-gray-500">IP: 10.0.0.5 · Last active: 2 hours ago</p>
+          </div>
+          <button class="ml-auto text-xs bg-red-700 hover:bg-red-600 text-white px-3 py-1 rounded transition">Log out</button>
+        </div>
+        <div class="px-4 py-4 flex items-center gap-4">
+          <span class="text-2xl">💻</span>
+          <div>
+            <p class="text-sm font-medium text-gray-200">Safari on iPhone</p>
+            <p class="text-xs text-gray-500">IP: 172.16.0.3 · Last active: yesterday</p>
+          </div>
+          <button class="ml-auto text-xs bg-red-700 hover:bg-red-600 text-white px-3 py-1 rounded transition">Log out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGE: PROFILE
+════════════════════════════════════════════════════════════ -->
+<div id="page-profile" class="page flex-1 overflow-hidden">
+  <div class="max-w-lg mx-auto p-6">
+    <h1 class="text-xl font-semibold text-white mb-6">Profile Settings</h1>
+    <div class="bg-gray-900 border border-gray-700 rounded-xl p-6 space-y-5">
+      <div class="flex items-center gap-4 pb-4 border-b border-gray-700">
+        <div class="w-14 h-14 rounded-full bg-indigo-600 flex items-center justify-center text-2xl font-bold">A</div>
+        <div>
+          <p class="text-lg font-semibold text-white">alice</p>
+          <p class="text-sm text-gray-400">alice@example.com</p>
+        </div>
+      </div>
+      <div>
+        <label class="block text-xs text-gray-400 mb-1">Email</label>
+        <input class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" value="alice@example.com" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-400 mb-1">Username <span class="text-gray-600">(cannot be changed)</span></label>
+        <input class="w-full bg-gray-800/50 border border-gray-700 rounded-lg px-3 py-2 text-sm text-gray-500 cursor-not-allowed" value="alice" disabled />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-400 mb-1">New Password</label>
+        <input type="password" class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" placeholder="Leave blank to keep current" />
+      </div>
+      <div class="flex gap-3 pt-2">
+        <button class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-5 py-2 rounded-lg transition">Save changes</button>
+        <button onclick="openModal('delete-account')" class="bg-red-900/50 hover:bg-red-800 text-red-400 hover:text-red-300 text-sm px-5 py-2 rounded-lg border border-red-800 transition">Delete account</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     PAGE: PUBLIC ROOM CATALOG
+════════════════════════════════════════════════════════════ -->
+<div id="page-private" class="page flex-1 overflow-hidden">
+  <div class="max-w-2xl mx-auto p-6">
+    <div class="flex items-center justify-between mb-4">
+      <h1 class="text-xl font-semibold text-white">Public Room Catalog</h1>
+      <button onclick="openModal('create-room')" class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-2 rounded-lg transition">+ Create Room</button>
+    </div>
+    <input class="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-indigo-500 mb-4" placeholder="Search rooms..." />
+    <div class="space-y-3">
+      <div class="bg-gray-900 border border-gray-700 rounded-xl p-4 flex items-start justify-between hover:border-indigo-600 transition cursor-pointer">
+        <div>
+          <p class="font-medium text-white"># general</p>
+          <p class="text-sm text-gray-400 mt-0.5">General discussions — open to everyone</p>
+          <p class="text-xs text-gray-600 mt-1">38 members</p>
+        </div>
+        <button class="text-sm bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded-lg transition shrink-0 ml-4">Joined ✓</button>
+      </div>
+      <div class="bg-gray-900 border border-gray-700 rounded-xl p-4 flex items-start justify-between hover:border-indigo-600 transition cursor-pointer">
+        <div>
+          <p class="font-medium text-white"># engineering</p>
+          <p class="text-sm text-gray-400 mt-0.5">Backend + frontend discussions</p>
+          <p class="text-xs text-gray-600 mt-1">14 members</p>
+        </div>
+        <button class="text-sm bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-1.5 rounded-lg transition shrink-0 ml-4">Join</button>
+      </div>
+      <div class="bg-gray-900 border border-gray-700 rounded-xl p-4 flex items-start justify-between hover:border-indigo-600 transition cursor-pointer">
+        <div>
+          <p class="font-medium text-white"># random</p>
+          <p class="text-sm text-gray-400 mt-0.5">Off-topic chat</p>
+          <p class="text-xs text-gray-600 mt-1">52 members</p>
+        </div>
+        <button class="text-sm bg-gray-700 hover:bg-gray-600 text-gray-300 px-4 py-1.5 rounded-lg transition shrink-0 ml-4">Join</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL: MANAGE ROOM
+════════════════════════════════════════════════════════════ -->
+<div id="modal-manage-room" class="modal-overlay" onclick="closeModalOutside(event, 'manage-room')">
+  <div class="bg-gray-900 border border-gray-700 rounded-2xl w-[700px] max-h-[85vh] overflow-hidden flex flex-col shadow-2xl">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-700">
+      <h2 class="text-lg font-semibold text-white">Manage Room: #general</h2>
+      <button onclick="closeModal('manage-room')" class="text-gray-500 hover:text-white text-xl">✕</button>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b border-gray-700 px-4">
+      <button onclick="showTab('members')" id="tab-members" class="modal-tab active-tab text-sm px-4 py-3 text-indigo-400 border-b-2 border-indigo-400">Members</button>
+      <button onclick="showTab('admins')"  id="tab-admins"  class="modal-tab text-sm px-4 py-3 text-gray-500 hover:text-gray-300">Admins</button>
+      <button onclick="showTab('banned')"  id="tab-banned"  class="modal-tab text-sm px-4 py-3 text-gray-500 hover:text-gray-300">Banned Users</button>
+      <button onclick="showTab('invites')" id="tab-invites" class="modal-tab text-sm px-4 py-3 text-gray-500 hover:text-gray-300">Invitations</button>
+      <button onclick="showTab('settings')"id="tab-settings"class="modal-tab text-sm px-4 py-3 text-gray-500 hover:text-gray-300">Settings</button>
+    </div>
+
+    <div class="flex-1 overflow-y-auto scrollbar-thin p-5">
+      <!-- Members tab -->
+      <div id="tabcontent-members">
+        <input class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-indigo-500 mb-3" placeholder="Search member..." />
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-xs text-gray-500 border-b border-gray-700">
+              <th class="text-left py-2 font-medium">Username</th>
+              <th class="text-left py-2 font-medium">Status</th>
+              <th class="text-left py-2 font-medium">Role</th>
+              <th class="text-left py-2 font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-800">
+            <tr>
+              <td class="py-2.5 text-gray-200 font-medium">alice</td>
+              <td class="py-2.5"><span class="text-green-400 text-xs">● online</span></td>
+              <td class="py-2.5"><span class="text-yellow-500 text-xs">★ Owner</span></td>
+              <td class="py-2.5 text-gray-600 text-xs">—</td>
+            </tr>
+            <tr>
+              <td class="py-2.5 text-gray-200">dave</td>
+              <td class="py-2.5"><span class="text-amber-400 text-xs">◐ AFK</span></td>
+              <td class="py-2.5"><span class="text-amber-500 text-xs">Admin</span></td>
+              <td class="py-2.5 flex gap-1.5">
+                <button class="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-2 py-1 rounded">Remove admin</button>
+                <button class="text-xs bg-red-900/50 hover:bg-red-800 text-red-400 px-2 py-1 rounded">Ban</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="py-2.5 text-gray-200">bob</td>
+              <td class="py-2.5"><span class="text-green-400 text-xs">● online</span></td>
+              <td class="py-2.5 text-gray-500 text-xs">Member</td>
+              <td class="py-2.5 flex gap-1.5">
+                <button class="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-2 py-1 rounded">Make admin</button>
+                <button class="text-xs bg-red-900/50 hover:bg-red-800 text-red-400 px-2 py-1 rounded">Ban</button>
+                <button class="text-xs bg-gray-700 hover:bg-red-800 text-gray-400 hover:text-red-300 px-2 py-1 rounded">Remove</button>
+              </td>
+            </tr>
+            <tr>
+              <td class="py-2.5 text-gray-400">carol</td>
+              <td class="py-2.5"><span class="text-gray-500 text-xs">○ offline</span></td>
+              <td class="py-2.5 text-gray-500 text-xs">Member</td>
+              <td class="py-2.5 flex gap-1.5">
+                <button class="text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-2 py-1 rounded">Make admin</button>
+                <button class="text-xs bg-red-900/50 hover:bg-red-800 text-red-400 px-2 py-1 rounded">Ban</button>
+                <button class="text-xs bg-gray-700 hover:bg-red-800 text-gray-400 hover:text-red-300 px-2 py-1 rounded">Remove</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Admins tab -->
+      <div id="tabcontent-admins" class="hidden space-y-3">
+        <p class="text-sm text-gray-400">Current admins</p>
+        <div class="bg-gray-800 rounded-lg p-3 flex items-center gap-3">
+          <div class="w-7 h-7 rounded-full bg-indigo-600 flex items-center justify-center text-xs font-bold">A</div>
+          <span class="text-gray-200 text-sm">alice</span>
+          <span class="text-yellow-500 text-xs ml-1">★ Owner — cannot lose admin rights</span>
+        </div>
+        <div class="bg-gray-800 rounded-lg p-3 flex items-center gap-3">
+          <div class="w-7 h-7 rounded-full bg-amber-600 flex items-center justify-center text-xs font-bold">D</div>
+          <span class="text-gray-200 text-sm">dave</span>
+          <button class="ml-auto text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 px-3 py-1 rounded">Remove admin</button>
+        </div>
+      </div>
+
+      <!-- Banned users tab -->
+      <div id="tabcontent-banned" class="hidden">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-xs text-gray-500 border-b border-gray-700">
+              <th class="text-left py-2 font-medium">Username</th>
+              <th class="text-left py-2 font-medium">Banned by</th>
+              <th class="text-left py-2 font-medium">Date / Time</th>
+              <th class="text-left py-2 font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-800">
+            <tr>
+              <td class="py-2.5 text-gray-300">mike</td>
+              <td class="py-2.5 text-indigo-400">alice</td>
+              <td class="py-2.5 text-gray-500 text-xs">2026-04-18 13:25</td>
+              <td class="py-2.5"><button class="text-xs bg-indigo-700 hover:bg-indigo-600 text-white px-3 py-1 rounded">Unban</button></td>
+            </tr>
+            <tr>
+              <td class="py-2.5 text-gray-300">eve</td>
+              <td class="py-2.5 text-amber-400">dave</td>
+              <td class="py-2.5 text-gray-500 text-xs">2026-04-18 13:40</td>
+              <td class="py-2.5"><button class="text-xs bg-indigo-700 hover:bg-indigo-600 text-white px-3 py-1 rounded">Unban</button></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Invitations tab -->
+      <div id="tabcontent-invites" class="hidden">
+        <p class="text-sm text-gray-400 mb-3">Invite a user to this private room by username.</p>
+        <div class="flex gap-2">
+          <input class="flex-1 bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-200 placeholder-gray-500 focus:outline-none focus:border-indigo-500" placeholder="Enter username..." />
+          <button class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-4 py-2 rounded-lg transition">Send Invite</button>
+        </div>
+      </div>
+
+      <!-- Settings tab -->
+      <div id="tabcontent-settings" class="hidden space-y-4">
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">Room name</label>
+          <input class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" value="general" />
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-1">Description</label>
+          <textarea class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500 resize-none" rows="2">General discussions — open to everyone</textarea>
+        </div>
+        <div>
+          <label class="block text-xs text-gray-400 mb-2">Visibility</label>
+          <div class="flex gap-4 text-sm">
+            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="vis" checked class="accent-indigo-500" /> <span class="text-gray-300">Public</span></label>
+            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="vis" class="accent-indigo-500" /> <span class="text-gray-300">Private</span></label>
+          </div>
+        </div>
+        <div class="flex justify-between pt-2">
+          <button class="bg-indigo-600 hover:bg-indigo-500 text-white text-sm px-5 py-2 rounded-lg transition">Save changes</button>
+          <button class="bg-red-900/50 hover:bg-red-800 text-red-400 text-sm px-5 py-2 rounded-lg border border-red-800 transition">Delete room</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL: CREATE ROOM
+════════════════════════════════════════════════════════════ -->
+<div id="modal-create-room" class="modal-overlay" onclick="closeModalOutside(event, 'create-room')">
+  <div class="bg-gray-900 border border-gray-700 rounded-2xl w-96 shadow-2xl">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-gray-700">
+      <h2 class="text-lg font-semibold text-white">Create Room</h2>
+      <button onclick="closeModal('create-room')" class="text-gray-500 hover:text-white text-xl">✕</button>
+    </div>
+    <div class="p-6 space-y-4">
+      <div>
+        <label class="block text-xs text-gray-400 mb-1">Room name</label>
+        <input class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" placeholder="e.g. design-team" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-400 mb-1">Description</label>
+        <input class="w-full bg-gray-800 border border-gray-600 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-indigo-500" placeholder="What's this room for?" />
+      </div>
+      <div>
+        <label class="block text-xs text-gray-400 mb-2">Visibility</label>
+        <div class="flex gap-4 text-sm">
+          <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="new-vis" checked class="accent-indigo-500" /> <span class="text-gray-300">Public</span></label>
+          <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="new-vis" class="accent-indigo-500" /> <span class="text-gray-300">Private</span></label>
+        </div>
+      </div>
+      <button class="w-full bg-indigo-600 hover:bg-indigo-500 text-white text-sm py-2 rounded-lg transition mt-2">Create room</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     MODAL: DELETE ACCOUNT
+════════════════════════════════════════════════════════════ -->
+<div id="modal-delete-account" class="modal-overlay" onclick="closeModalOutside(event, 'delete-account')">
+  <div class="bg-gray-900 border border-red-800 rounded-2xl w-96 shadow-2xl">
+    <div class="flex items-center justify-between px-6 py-4 border-b border-red-900">
+      <h2 class="text-lg font-semibold text-red-400">Delete Account</h2>
+      <button onclick="closeModal('delete-account')" class="text-gray-500 hover:text-white text-xl">✕</button>
+    </div>
+    <div class="p-6 space-y-4">
+      <p class="text-sm text-gray-300">This action is <strong class="text-red-400">permanent and cannot be undone</strong>. The following will be deleted:</p>
+      <ul class="text-sm text-gray-400 space-y-1 list-disc list-inside">
+        <li>Your account and profile</li>
+        <li>All rooms you own (and their messages)</li>
+        <li>Your membership in all other rooms</li>
+      </ul>
+      <div>
+        <label class="block text-xs text-gray-400 mb-1">Type your password to confirm</label>
+        <input type="password" class="w-full bg-gray-800 border border-red-800 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-red-500" placeholder="••••••••" />
+      </div>
+      <button class="w-full bg-red-700 hover:bg-red-600 text-white text-sm py-2 rounded-lg transition">Delete my account permanently</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════════ -->
+<style>
+  .active-tab { color: #818cf8; border-bottom: 2px solid #818cf8; }
+</style>
+<script>
+  function showPage(name) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const el = document.getElementById('page-' + name);
+    if (el) el.classList.add('active');
+  }
+
+  function openModal(name) {
+    document.getElementById('modal-' + name).classList.add('open');
+  }
+
+  function closeModal(name) {
+    document.getElementById('modal-' + name).classList.remove('open');
+  }
+
+  function closeModalOutside(e, name) {
+    if (e.target === document.getElementById('modal-' + name)) closeModal(name);
+  }
+
+  function showTab(name) {
+    document.querySelectorAll('[id^="tabcontent-"]').forEach(t => t.classList.add('hidden'));
+    document.getElementById('tabcontent-' + name).classList.remove('hidden');
+    document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active-tab', 'text-indigo-400'));
+    const btn = document.getElementById('tab-' + name);
+    if (btn) { btn.classList.add('active-tab'); }
+  }
+
+  function toggleGroup(id) {
+    const el = document.getElementById(id);
+    el.classList.toggle('hidden');
+  }
+
+  function selectRoom(name) {
+    document.getElementById('chat-title').textContent = '# ' + name;
+    document.getElementById('chat-desc').textContent = name + ' — room description';
+    document.querySelectorAll('.room-item').forEach(b => {
+      b.classList.remove('bg-indigo-700', 'text-white');
+      b.classList.add('text-gray-300');
+    });
+    event.currentTarget.classList.add('bg-indigo-700', 'text-white');
+    event.currentTarget.classList.remove('text-gray-300');
+  }
+
+  function selectDM(name) {
+    document.getElementById('chat-title').textContent = '@ ' + name;
+    document.getElementById('chat-desc').textContent = 'Personal conversation with ' + name;
+  }
+
+  function setReply(name) {
+    document.getElementById('reply-bar').classList.remove('hidden');
+    document.getElementById('reply-name').textContent = name;
+    document.getElementById('msg-input').focus();
+  }
+
+  function clearReply() {
+    document.getElementById('reply-bar').classList.add('hidden');
+  }
+
+  function sendMessage() {
+    const input = document.getElementById('msg-input');
+    const text = input.value.trim();
+    if (!text) return;
+    const msgs = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = 'msg-row flex gap-3 hover:bg-gray-800/40 px-2 py-1 rounded-lg group';
+    div.innerHTML = `
+      <div class="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-xs font-bold shrink-0 mt-0.5">Y</div>
+      <div class="flex-1 min-w-0">
+        <div class="flex items-baseline gap-2">
+          <span class="text-sm font-semibold text-emerald-400">You</span>
+          <span class="text-xs text-gray-500">${new Date().toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'})}</span>
+        </div>
+        <p class="text-sm text-gray-200 mt-0.5">${text.replace(/</g,'&lt;')}</p>
+      </div>
+      <div class="msg-actions flex items-start gap-1 shrink-0 pt-0.5">
+        <button class="text-gray-500 hover:text-gray-300 text-xs px-1.5 py-0.5 rounded hover:bg-gray-700">✏</button>
+        <button class="text-gray-500 hover:text-gray-300 text-xs px-1.5 py-0.5 rounded hover:bg-gray-700">🗑</button>
+      </div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+    input.value = '';
+    clearReply();
+  }
+
+  document.getElementById('msg-input').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+</script>
+</body>
+</html>
