@@ -50,27 +50,14 @@ export function initSocket(httpServer: HttpServer) {
     }
   });
 
-  io.on('connection', async (rawSocket) => {
+  io.on('connection', (rawSocket) => {
     const socket = rawSocket as AuthSocket;
     const { userId, tabId } = socket;
 
     console.log(`User ${userId} connected (tab ${tabId})`);
 
-    // Register tab and broadcast presence
-    await registerTab(userId, tabId);
-    socket.join(`user:${userId}`);
-
-    // Join all user's rooms
-    const memberships = await prisma.roomMember.findMany({
-      where: { userId },
-      select: { roomId: true },
-    });
-    for (const { roomId } of memberships) {
-      socket.join(`room:${roomId}`);
-    }
-
-    // Broadcast online status to contacts
-    await broadcastPresence(io, userId, 'online');
+    // Register listeners immediately so no client event is ever dropped
+    // while async setup (presence, room joins) is still in flight.
 
     // Heartbeat — client sends every 30s
     socket.on('heartbeat', async () => {
@@ -142,6 +129,26 @@ export function initSocket(httpServer: HttpServer) {
       const presence = await getBulkPresence([userId]);
       await broadcastPresence(io, userId, presence[userId] as 'online' | 'afk' | 'offline');
     });
+
+    // Async setup: presence + join existing rooms (runs after listeners are registered)
+    (async () => {
+      try {
+        await registerTab(userId, tabId);
+        socket.join(`user:${userId}`);
+
+        const memberships = await prisma.roomMember.findMany({
+          where: { userId },
+          select: { roomId: true },
+        });
+        for (const { roomId } of memberships) {
+          socket.join(`room:${roomId}`);
+        }
+
+        await broadcastPresence(io, userId, 'online');
+      } catch (err) {
+        console.error(`Socket setup error for user ${userId}:`, err);
+      }
+    })();
   });
 
   // AFK check interval — every 30 seconds

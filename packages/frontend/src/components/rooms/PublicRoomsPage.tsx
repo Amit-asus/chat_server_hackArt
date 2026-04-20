@@ -18,18 +18,27 @@ export default function PublicRoomsPage() {
 
   const myRoomIds = new Set(myRooms.map(r => r.id));
 
+  const emitJoin = (roomId: string) => {
+    const s = getSocket();
+    if (s.connected) {
+      s.emit('room:join', roomId);
+    } else {
+      s.once('connect', () => s.emit('room:join', roomId));
+    }
+  };
+
   const handleJoin = async (room: Room) => {
     try {
       if (myRoomIds.has(room.id)) {
         setActiveRoom(room);
         markRead(room.id);
-        getSocket().emit('room:join', room.id);
+        emitJoin(room.id);
         navigate('/');
       } else {
         const joined = await joinRoom.mutateAsync(room.id);
         setActiveRoom(joined);
         markRead(joined.id);
-        getSocket().emit('room:join', joined.id);
+        emitJoin(joined.id);
         navigate('/');
       }
     } catch (err: any) {

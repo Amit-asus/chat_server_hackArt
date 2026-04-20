@@ -6,7 +6,7 @@ import api from '../../lib/axios';
 import { cn } from '../../lib/utils';
 
 export default function MessageInput() {
-  const { activeRoom, replyTo, setReplyTo, addMessage } = useChatStore();
+  const { activeRoom, replyTo, setReplyTo } = useChatStore();
   const [content, setContent] = useState('');
   const [sending, setSending] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -32,8 +32,6 @@ export default function MessageInput() {
         roomId: activeRoom.id,
         content: content.trim(),
         replyToId: replyTo?.id,
-      }, (res: any) => {
-        if (res?.ok) addMessage(res.message);
       });
       setContent('');
       setReplyTo(null);
