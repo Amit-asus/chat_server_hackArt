@@ -145,9 +145,11 @@ export default function Sidebar() {
         <div className="p-4 bg-white/[0.02] border-t border-white/5 backdrop-blur-md">
           <div className="flex items-center gap-3">
              <div className="relative">
-                <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-indigo-600 to-purple-600 flex items-center justify-center text-white font-bold border border-white/10 shadow-lg shadow-indigo-500/20">
-                  {user?.username?.[0].toUpperCase()}
-                </div>
+                <img
+                  src={`https://api.dicebear.com/9.x/bottts/svg?seed=${encodeURIComponent(user?.username ?? 'default')}&backgroundColor=1e1b4b`}
+                  alt={user?.username}
+                  className="w-9 h-9 rounded-full border border-white/10 shadow-lg shadow-indigo-500/20 bg-indigo-950"
+                />
                 <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-[#0a0a0c] rounded-full" />
              </div>
              <div className="flex-1 overflow-hidden">

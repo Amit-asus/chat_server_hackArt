@@ -74,9 +74,11 @@ export default function FriendRecommendationsPanel() {
                 transition={{ delay: i * 0.03 }}
                 className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-white/[0.04] transition-all group"
               >
-                <div className="w-8 h-8 bg-indigo-500/10 text-indigo-400 rounded-xl flex items-center justify-center text-[10px] font-black border border-indigo-500/10 flex-shrink-0">
-                  {user.username.slice(0, 2).toUpperCase()}
-                </div>
+                <img
+                  src={`https://api.dicebear.com/9.x/bottts/svg?seed=${encodeURIComponent(user.username)}&backgroundColor=1e1b4b`}
+                  alt={user.username}
+                  className="w-8 h-8 rounded-xl border border-indigo-500/10 bg-indigo-950 flex-shrink-0"
+                />
                 <span className="flex-1 text-xs font-bold text-white/70 truncate uppercase tracking-wide">
                   {user.username}
                 </span>

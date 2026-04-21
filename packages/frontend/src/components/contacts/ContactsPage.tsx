@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, Check, X, MessageCircle, UserMinus, Shield, Search, Users } from 'lucide-react';
+import { UserPlus, Check, X, MessageCircle, UserMinus, Shield, Search } from 'lucide-react';
 import { useFriends, useFriendRequests, useSendFriendRequest, useAcceptRequest, useDeclineRequest, useRemoveFriend } from '../../hooks/useFriends';
 import { usePresenceStore } from '../../stores/presence.store';
 import { cn } from '../../lib/utils';
@@ -165,9 +165,11 @@ export default function ContactsPage() {
                       )}
 
                       <div className="relative">
-                        <div className="w-12 h-12 bg-indigo-500/20 text-indigo-400 rounded-2xl flex items-center justify-center text-sm font-black border border-indigo-500/20 group-hover:bg-indigo-500 group-hover:text-white transition-all">
-                          {friend.username.slice(0, 2).toUpperCase()}
-                        </div>
+                        <img
+                          src={`https://api.dicebear.com/9.x/bottts/svg?seed=${encodeURIComponent(friend.username)}&backgroundColor=1e1b4b`}
+                          alt={friend.username}
+                          className="w-12 h-12 rounded-2xl border border-indigo-500/20 bg-indigo-950"
+                        />
                         <div className={cn(
                           'absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-[#050507] shadow-sm',
                           status === 'online' ? 'bg-green-500 shadow-[0_0_8px_#22c55e]' : 

@@ -13,7 +13,6 @@ import {
 import { useAuthStore } from '../../stores/auth.store';
 import { disconnectSocket } from '../../socket';
 import api from '../../lib/axios';
-import { getInitials } from '../../lib/utils';
 import { cn } from '../../lib/utils';
 
 export default function TopNav() {
@@ -42,18 +41,53 @@ export default function TopNav() {
     <header className="relative h-16 flex items-center px-6 shrink-0 z-50 bg-[#0a0a0c]/80 backdrop-blur-2xl border-b border-white/5 shadow-2xl">
 
       {/* Brand Section */}
-      <div className="flex items-center gap-3 group cursor-pointer" onClick={() => navigate('/')}>
-        <div className="relative">
-          <div className="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(79,70,229,0.4)] group-hover:scale-110 transition-transform duration-300">
-            <Sparkles size={20} className="text-white animate-pulse" />
+      <div className="flex items-center gap-4 group cursor-pointer" onClick={() => navigate('/')}>
+        {/* Futuristic Logo Mark */}
+        <div className="relative flex items-center justify-center">
+          {/* Outer pulsing ring */}
+          <div className="absolute w-14 h-14 rounded-full border border-indigo-500/30 animate-ping" style={{ animationDuration: '2.5s' }} />
+          {/* Mid rotating ring */}
+          <div className="absolute w-12 h-12 rounded-full border border-cyan-400/20 animate-spin" style={{ animationDuration: '8s' }} />
+          {/* Glow bloom */}
+          <div className="absolute w-10 h-10 rounded-full bg-indigo-600/20 blur-md" />
+          {/* Core hex logo */}
+          <div className="relative w-11 h-11 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+            {/* Hexagon SVG background */}
+            <svg viewBox="0 0 48 48" className="absolute inset-0 w-full h-full" fill="none">
+              <polygon
+                points="24,2 44,13 44,35 24,46 4,35 4,13"
+                className="fill-indigo-600/80 stroke-cyan-400/60"
+                strokeWidth="1.5"
+              />
+              <polygon
+                points="24,8 38,16 38,32 24,40 10,32 10,16"
+                className="fill-indigo-900/60 stroke-indigo-400/40"
+                strokeWidth="0.8"
+              />
+            </svg>
+            {/* Icon inside hex */}
+            <Sparkles size={18} className="relative z-10 text-cyan-300 drop-shadow-[0_0_6px_#67e8f9]" />
           </div>
-          {/* Subtle Outer Glow */}
-          <div className="absolute -inset-1 bg-indigo-500/20 rounded-xl blur opacity-0 group-hover:opacity-100 transition-opacity" />
+          {/* Corner accent dots */}
+          <div className="absolute top-0 right-0 w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_6px_#22d3ee]" />
+          <div className="absolute bottom-0 left-0 w-1 h-1 rounded-full bg-indigo-400 shadow-[0_0_4px_#818cf8]" />
         </div>
-        <div className="flex flex-col">
-          {/* CHANGED: text-gray-900 to text-white */}
-          <span className="font-black text-white text-sm tracking-tighter uppercase italic">Hackart</span>
-          <span className="text-[10px] text-indigo-400 font-bold tracking-[0.2em] leading-none">v2.0.4</span>
+
+        {/* Brand Text */}
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-baseline gap-1.5">
+            <span className="font-black text-white text-lg tracking-widest uppercase" style={{ fontVariantNumeric: 'tabular-nums', letterSpacing: '0.15em', textShadow: '0 0 20px rgba(99,102,241,0.8)' }}>
+              HACK
+            </span>
+            <span className="font-black text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-indigo-400 text-lg tracking-widest uppercase" style={{ letterSpacing: '0.15em' }}>
+              ART
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            {/* Animated status dot */}
+            <span className="w-1 h-1 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_4px_#22d3ee]" />
+            <span className="text-[9px] text-cyan-400/70 font-bold tracking-[0.3em] uppercase">v2.0.4 · LIVE</span>
+          </div>
         </div>
       </div>
 
@@ -103,8 +137,12 @@ export default function TopNav() {
               showMenu ? "bg-white/10 border-white/10" : "bg-transparent border-transparent hover:bg-white/5"
             )}
           >
-            <div className="w-8 h-8 bg-gradient-to-tr from-indigo-600 to-violet-600 rounded-xl flex items-center justify-center text-white text-xs font-black shadow-lg">
-              {getInitials(user?.username || '')}
+            <div className="w-8 h-8 rounded-xl overflow-hidden shadow-lg ring-2 ring-indigo-500/60 ring-offset-1 ring-offset-black/40">
+              <img
+                src={`https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${encodeURIComponent(user?.username || 'user')}&backgroundColor=1e1b4b,2e1065,1a1a2e&backgroundType=gradientLinear`}
+                alt={user?.username}
+                className="w-full h-full object-cover"
+              />
             </div>
             <div className="hidden sm:block text-left">
               {/* CHANGED: text-gray-900 to text-white */}
