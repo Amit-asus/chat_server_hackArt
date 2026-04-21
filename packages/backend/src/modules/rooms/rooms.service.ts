@@ -252,6 +252,8 @@ export async function acceptInvitation(invitationId: string, userId: string) {
     }),
     prisma.roomInvitation.delete({ where: { id: invitationId } }),
   ]);
+
+  return prisma.room.findUnique({ where: { id: invitation.roomId }, select: roomSelect });
 }
 
 export async function getPendingInvitations(userId: string) {

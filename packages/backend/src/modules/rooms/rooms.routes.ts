@@ -35,8 +35,8 @@ router.get('/invitations', wrap(async (req, res, next) => {
 
 router.post('/invitations/:id/accept', wrap(async (req, res, next) => {
   try {
-    await roomsService.acceptInvitation(req.params.id, req.userId);
-    res.json({ message: 'Invitation accepted' });
+    const room = await roomsService.acceptInvitation(req.params.id, req.userId);
+    res.json({ message: 'Invitation accepted', room });
   } catch (err) { next(err); }
 }));
 
