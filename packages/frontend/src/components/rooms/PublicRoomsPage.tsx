@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Search, Plus, Users } from 'lucide-react';
-import { usePublicRooms, useJoinRoom, useMyRooms, useCreateRoom } from '../../hooks/useRooms';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Plus, Users, Hash, Globe, ArrowUpRight, Loader2, Sparkles } from 'lucide-react';
+import { usePublicRooms, useJoinRoom, useMyRooms } from '../../hooks/useRooms';
 import { useChatStore } from '../../stores/chat.store';
 import { useNavigate } from 'react-router-dom';
 import { Room } from '../../types';
 import { getSocket } from '../../socket';
 import CreateRoomModal from './CreateRoomModal';
+import { cn } from '../../lib/utils';
 
 export default function PublicRoomsPage() {
   const [search, setSearch] = useState('');
@@ -42,62 +44,132 @@ export default function PublicRoomsPage() {
         navigate('/');
       }
     } catch (err: any) {
-      alert(err.response?.data?.error || 'Failed to join room');
+      console.error(err.response?.data?.error || 'Failed to join frequency');
     }
   };
 
   return (
-    <div className="flex-1 overflow-y-auto p-6">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-xl font-semibold text-gray-900">Public Rooms</h1>
-          <button
-            onClick={() => setShowCreate(true)}
-            className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm px-4 py-2 rounded-xl transition"
-          >
-            <Plus size={16} /> Create Room
-          </button>
-        </div>
-
-        <div className="relative mb-4">
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="w-full border border-gray-200 rounded-xl pl-10 pr-4 py-2.5 text-sm focus:outline-none focus:border-indigo-500"
-            placeholder="Search rooms..."
-          />
-        </div>
-
-        {isLoading ? (
-          <div className="text-center text-gray-400 py-8">Loading...</div>
-        ) : publicRooms.length === 0 ? (
-          <div className="text-center text-gray-400 py-8">No rooms found</div>
-        ) : (
-          <div className="space-y-3">
-            {publicRooms.map(room => (
-              <div key={room.id} className="bg-white border border-gray-200 rounded-xl p-4 flex items-start justify-between hover:border-indigo-300 transition">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900">#{room.name}</p>
-                  {room.description && <p className="text-sm text-gray-500 mt-0.5">{room.description}</p>}
-                  <div className="flex items-center gap-1 text-xs text-gray-400 mt-1">
-                    <Users size={12} />
-                    <span>{room._count?.members || 0} members</span>
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleJoin(room)}
-                  className={
-                    myRoomIds.has(room.id)
-                      ? 'text-sm bg-indigo-50 text-indigo-600 border border-indigo-200 px-4 py-1.5 rounded-xl shrink-0 ml-4'
-                      : 'text-sm bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-1.5 rounded-xl transition shrink-0 ml-4'
-                  }
-                >
-                  {myRoomIds.has(room.id) ? 'Open ✓' : 'Join'}
-                </button>
-              </div>
-            ))}
+    <div className="flex-1 overflow-y-auto p-8 bg-transparent custom-scrollbar">
+      <div className="max-w-5xl mx-auto space-y-10">
+        
+        {/* HEADER SECTION */}
+        <header className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2 text-indigo-400 mb-2">
+              <Globe size={18} className="animate-spin-slow" />
+              <span className="text-[10px] font-black uppercase tracking-[0.4em]">Global Frequency Scanner</span>
+            </div>
+            <h1 className="text-4xl font-black text-white tracking-tighter uppercase italic">
+              Discovery<span className="text-indigo-500">_</span>
+            </h1>
           </div>
+
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setShowCreate(true)}
+            className="flex items-center justify-center gap-2 bg-white text-black font-black uppercase tracking-widest text-[11px] px-6 py-3.5 rounded-2xl shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:bg-indigo-50 transition-all"
+          >
+            <Plus size={16} strokeWidth={3} /> Initialize Room
+          </motion.button>
+        </header>
+
+        {/* SEARCH CONSOLE */}
+        <div className="relative group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 blur-xl opacity-50 group-focus-within:opacity-100 transition duration-500" />
+          <div className="relative">
+            <Search size={20} className="absolute left-5 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-indigo-400 transition-colors" />
+            <input
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full bg-[#0a0a0c]/60 backdrop-blur-2xl border border-white/5 rounded-[22px] pl-14 pr-6 py-5 text-white placeholder-white/20 focus:outline-none focus:ring-2 focus:ring-indigo-500/30 transition-all tracking-wide text-lg"
+              placeholder="Filter by frequency name or keyword..."
+            />
+          </div>
+        </div>
+
+        {/* MAIN GRID */}
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center py-20 space-y-4">
+            <Loader2 className="animate-spin text-indigo-500" size={32} />
+            <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.5em]">Synchronizing Nexus Nodes</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 pb-12">
+            <AnimatePresence mode="popLayout">
+              {publicRooms.map((room, idx) => {
+                const isMember = myRoomIds.has(room.id);
+                return (
+                  <motion.div
+                    layout
+                    key={room.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: idx * 0.05 }}
+                    className="group relative"
+                  >
+                    <div className="absolute -inset-0.5 bg-gradient-to-br from-indigo-500/10 to-transparent rounded-[24px] opacity-0 group-hover:opacity-100 transition duration-500" />
+                    <div className="relative h-full bg-white/[0.02] border border-white/5 rounded-[24px] p-6 backdrop-blur-sm flex flex-col hover:bg-white/[0.05] hover:border-white/10 transition-all">
+                      
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="p-3 bg-indigo-500/10 rounded-xl text-indigo-400 border border-indigo-500/10">
+                          <Hash size={20} />
+                        </div>
+                        <div className="flex items-center gap-1.5 bg-white/[0.05] px-2.5 py-1 rounded-lg border border-white/5">
+                          <Users size={12} className="text-white/40" />
+                          <span className="text-[10px] font-black text-white/60 tracking-tighter">
+                            {room._count?.members || 0}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="flex-1 space-y-2">
+                        <h3 className="text-lg font-black text-white uppercase tracking-tight leading-tight group-hover:text-indigo-300 transition-colors">
+                          {room.name}
+                        </h3>
+                        <p className="text-sm text-white/30 font-medium line-clamp-2 leading-relaxed italic">
+                          {room.description || "No description broadcasted for this node."}
+                        </p>
+                      </div>
+
+                      <div className="mt-6 pt-6 border-t border-white/5">
+                        <button
+                          onClick={() => handleJoin(room)}
+                          className={cn(
+                            "w-full flex items-center justify-center gap-2 py-3 rounded-xl font-black text-[10px] uppercase tracking-[0.2em] transition-all",
+                            isMember 
+                              ? "bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500 hover:text-black" 
+                              : "bg-indigo-600 text-white shadow-lg shadow-indigo-500/20 hover:bg-indigo-500 hover:-translate-y-0.5"
+                          )}
+                        >
+                          {isMember ? (
+                            <>Enter Channel <ArrowUpRight size={14} /></>
+                          ) : (
+                            <>Initialize Link <Sparkles size={14} /></>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </div>
+        )}
+
+        {/* EMPTY STATE */}
+        {!isLoading && publicRooms.length === 0 && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-24 bg-white/[0.01] border border-dashed border-white/10 rounded-[32px]"
+          >
+            <div className="inline-flex p-4 rounded-full bg-white/5 text-white/20 mb-4">
+              <Search size={32} />
+            </div>
+            <h3 className="text-white/60 font-black uppercase tracking-widest">No Signals Found</h3>
+            <p className="text-white/20 text-xs mt-2 font-bold uppercase tracking-tighter italic">Adjust your scanner or initialize a new node.</p>
+          </motion.div>
         )}
       </div>
 

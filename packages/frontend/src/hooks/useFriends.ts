@@ -64,3 +64,13 @@ export function useRemoveFriend() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['friends'] }),
   });
 }
+
+export function useUserSearch(q: string) {
+  return useQuery<{ id: string; username: string }[]>({
+    queryKey: ['users', 'search', q],
+    queryFn: async () => {
+      const res = await api.get('/users/search', { params: { q } });
+      return res.data.users ?? [];
+    },
+  });
+}
