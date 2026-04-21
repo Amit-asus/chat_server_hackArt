@@ -149,3 +149,57 @@ Open Docker Desktop and wait for it to fully start before running `docker compos
 
 **Changes not reflecting after a code edit?**
 Rebuild with: `docker compose up --build`
+
+
+
+_______-
+
+There are two ways to run this project:
+
+Option 1: Full Docker (simplest)
+Only requires Docker Desktop installed.
+
+1. Create .env in the project root with this content:
+
+
+POSTGRES_USER=chatuser
+POSTGRES_PASSWORD=chatpassword
+POSTGRES_DB=chatdb
+DATABASE_URL=postgresql://chatuser:chatpassword@postgres:5432/chatdb
+REDIS_PASSWORD=redispassword
+REDIS_URL=redis://:redispassword@redis:6379
+JWT_SECRET=super_secret_jwt_key_change_in_production_min_32_chars
+JWT_EXPIRES_IN=7d
+PORT=4000
+NODE_ENV=production
+CLIENT_URL=http://localhost
+MAX_FILE_SIZE_MB=20
+MAX_IMAGE_SIZE_MB=3
+2. Start everything:
+
+
+docker compose up --build
+App: http://localhost
+API: http://localhost:4000/api
+Option 2: Local Dev (hot reload)
+Use this when actively developing. Requires Node.js 20+ and Docker (only for Postgres/Redis).
+
+1. Start only DB and cache:
+
+
+docker compose up postgres redis -d
+2. Backend — create packages/backend/.env (use localhost instead of service names), then:
+
+
+cd packages/backend
+npm install
+npx prisma generate
+npx prisma migrate deploy
+npm run dev
+3. Frontend (new terminal):
+
+
+cd packages/frontend
+npm install
+npm run dev
+Frontend runs at http://localhost:3000, backend at http://localhost:4000.
