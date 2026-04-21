@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Hash, Lock, Users, Terminal, Info, ShieldCheck, UserPlus } from 'lucide-react';
+import { Hash, Lock, Users, Terminal, Info, ShieldCheck, UserPlus, MessageCircle } from 'lucide-react';
 import { useChatStore } from '../../stores/chat.store';
+import { useAuthStore } from '../../stores/auth.store';
+import { useRoomMembers } from '../../hooks/useRooms';
+import { usePresenceStore } from '../../stores/presence.store';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { cn } from '../../lib/utils';
@@ -13,11 +16,20 @@ interface Props {
 
 export default function ChatArea({ onToggleMembers }: Props) {
   const { activeRoom } = useChatStore();
+  const { user } = useAuthStore();
+  const { presence } = usePresenceStore();
   const [showInvite, setShowInvite] = useState(false);
+
+  const { data: members = [] } = useRoomMembers(activeRoom?.isDirect ? activeRoom.id : undefined);
 
   if (!activeRoom) return null;
 
-  const Icon = activeRoom.visibility === 'PRIVATE' ? Lock : Hash;
+  const isDM = activeRoom.isDirect;
+  const dmPartner = isDM ? members.find(m => m.userId !== user?.id) : null;
+  const displayName = isDM ? (dmPartner?.user.username ?? '…') : activeRoom.name;
+  const dmStatus = dmPartner ? (presence[dmPartner.userId] ?? 'offline') : null;
+
+  const Icon = isDM ? MessageCircle : activeRoom.visibility === 'PRIVATE' ? Lock : Hash;
 
   return (
     <motion.div 
@@ -31,31 +43,44 @@ export default function ChatArea({ onToggleMembers }: Props) {
         {/* Room Identity Icon */}
         <div className={cn(
           "w-10 h-10 rounded-xl flex items-center justify-center border transition-all duration-500 shadow-lg",
-          activeRoom.visibility === 'PRIVATE' 
-            ? "bg-amber-500/10 border-amber-500/20 text-amber-500 shadow-amber-500/10" 
+          !isDM && activeRoom.visibility === 'PRIVATE'
+            ? "bg-amber-500/10 border-amber-500/20 text-amber-500 shadow-amber-500/10"
             : "bg-indigo-500/10 border-indigo-500/20 text-indigo-400 shadow-indigo-500/10"
         )}>
-          <Icon size={20} className={cn(activeRoom.visibility === 'PRIVATE' ? "animate-pulse" : "")} />
+          <Icon size={20} />
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <h2 className="font-black text-white text-base tracking-tighter uppercase italic">
-              {activeRoom.name}
+              {displayName}
             </h2>
-            {activeRoom.visibility === 'PRIVATE' && (
+            {!isDM && activeRoom.visibility === 'PRIVATE' && (
               <span className="flex items-center gap-1 text-[8px] font-black bg-amber-500/10 text-amber-500 px-1.5 py-0.5 rounded border border-amber-500/20 uppercase tracking-[0.2em]">
                 <ShieldCheck size={10} /> Encrypted
               </span>
             )}
           </div>
-          
+
           <div className="flex items-center gap-3 mt-0.5">
-            <div className="flex items-center gap-1.5">
-               <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_#22c55e]" />
-               <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Feed Active</p>
-            </div>
-            {activeRoom.description && (
+            {isDM ? (
+              <div className="flex items-center gap-1.5">
+                <div className={cn(
+                  'w-1.5 h-1.5 rounded-full',
+                  dmStatus === 'online' ? 'bg-green-500 shadow-[0_0_8px_#22c55e] animate-pulse' :
+                  dmStatus === 'afk'    ? 'bg-yellow-400' : 'bg-white/20'
+                )} />
+                <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">
+                  {dmStatus === 'online' ? 'Online' : dmStatus === 'afk' ? 'Away' : 'Offline'}
+                </p>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse shadow-[0_0_8px_#22c55e]" />
+                <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Feed Active</p>
+              </div>
+            )}
+            {!isDM && activeRoom.description && (
               <>
                 <span className="text-white/10 text-xs">|</span>
                 <p className="text-[10px] text-white/30 font-medium truncate max-w-[300px]">

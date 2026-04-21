@@ -72,5 +72,6 @@ export function useUserSearch(q: string) {
       const res = await api.get('/users/search', { params: { q } });
       return res.data.users ?? [];
     },
+    staleTime: 15_000,
   });
 }

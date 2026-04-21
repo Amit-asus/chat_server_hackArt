@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { UserPlus, Check, X, MessageCircle, UserMinus, Shield, Search, Radio, Cpu, Activity } from 'lucide-react';
-import { useFriends, useFriendRequests, useSendFriendRequest, useAcceptRequest, useDeclineRequest, useRemoveFriend } from '../../hooks/useFriends';
+import { UserPlus, Check, X, MessageCircle, UserMinus, Shield, Search, Radio, Cpu, Activity, Loader2, UserCheck } from 'lucide-react';
+import { useFriends, useFriendRequests, useSendFriendRequest, useAcceptRequest, useDeclineRequest, useRemoveFriend, useUserSearch } from '../../hooks/useFriends';
 import { usePresenceStore } from '../../stores/presence.store';
 import { cn } from '../../lib/utils';
 import api from '../../lib/axios';
@@ -20,18 +20,25 @@ export default function ContactsPage() {
   const { setActiveRoom, markRead } = useChatStore();
   const navigate = useNavigate();
 
-  const [addUsername, setAddUsername] = useState('');
-  const [feedback, setFeedback] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [sentIds, setSentIds] = useState<Set<string>>(new Set());
+  const [sendingId, setSendingId] = useState<string | null>(null);
+  const [sendErrors, setSendErrors] = useState<Record<string, string>>({});
 
-  const handleSendRequest = async () => {
-    if (!addUsername.trim()) return;
+  const { data: searchResults = [], isFetching: searching } = useUserSearch(searchQuery);
+
+  const friendIds = new Set(friends.map(f => f.friend.id));
+
+  const handleSend = async (userId: string, username: string) => {
+    setSendingId(userId);
+    setSendErrors(prev => { const n = { ...prev }; delete n[userId]; return n; });
     try {
-      await sendRequest.mutateAsync({ username: addUsername.trim() });
-      setFeedback(`Protocol initiated: Request sent to ${addUsername}`);
-      setAddUsername('');
-      setTimeout(() => setFeedback(''), 4000);
+      await sendRequest.mutateAsync({ username });
+      setSentIds(prev => new Set(prev).add(userId));
     } catch (e: any) {
-      setFeedback(e.response?.data?.error || 'Authorization failed');
+      setSendErrors(prev => ({ ...prev, [userId]: e.response?.data?.error || 'Failed' }));
+    } finally {
+      setSendingId(null);
     }
   };
 
@@ -49,7 +56,7 @@ export default function ContactsPage() {
   return (
     <div className="flex-1 overflow-y-auto p-6 lg:p-10 bg-transparent custom-scrollbar">
       <div className="max-w-6xl mx-auto space-y-10">
-        
+
         {/* TOP HUD SECTION */}
         <header className="flex flex-col md:flex-row md:items-end justify-between gap-6 border-b border-white/5 pb-8">
           <div>
@@ -61,48 +68,120 @@ export default function ContactsPage() {
               Operatives<span className="text-indigo-600">.DB</span>
             </h1>
           </div>
-          
           <div className="flex gap-4">
             <StatCard label="Active Nodes" value={friends.length} color="indigo" />
             <StatCard label="Signals" value={requests.length} color="amber" />
           </div>
         </header>
 
-        {/* ADD OPERATIVE: GHOST INPUT */}
+        {/* LIVE USER SEARCH */}
         <section className="relative group max-w-2xl">
           <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 blur-xl opacity-50 group-focus-within:opacity-100 transition duration-700" />
-          <div className="relative bg-[#0a0a0c]/80 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-2xl">
-            <h2 className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] mb-4 flex items-center gap-2">
-              <Search size={14} /> Global Operative Search
+          <div className="relative bg-[#0a0a0c]/80 backdrop-blur-2xl border border-white/10 rounded-3xl p-6 shadow-2xl space-y-4">
+            <h2 className="text-[10px] font-black text-white/30 uppercase tracking-[0.4em] flex items-center gap-2">
+              <Search size={14} /> Locate Operatives
             </h2>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <div className="relative flex-1">
-                <input
-                  value={addUsername}
-                  onChange={e => setAddUsername(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleSendRequest()}
-                  placeholder="Enter operative callsign..."
-                  className="w-full bg-white/[0.03] border border-white/5 text-white placeholder-white/20 rounded-2xl px-6 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all font-medium"
-                />
-              </div>
-              <button
-                onClick={handleSendRequest}
-                className="bg-indigo-600 hover:bg-indigo-500 text-white font-black text-[11px] uppercase tracking-widest px-8 py-4 rounded-2xl transition-all shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2"
-              >
-                <UserPlus size={16} /> Link Operative
-              </button>
+
+            {/* Search Input */}
+            <div className="relative">
+              <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 pointer-events-none" />
+              {searching && (
+                <Loader2 size={14} className="absolute right-4 top-1/2 -translate-y-1/2 text-indigo-400 animate-spin" />
+              )}
+              <input
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder="Search by username (min 2 chars)..."
+                className="w-full bg-white/[0.03] border border-white/5 text-white placeholder-white/20 rounded-2xl pl-12 pr-12 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 transition-all font-medium"
+              />
             </div>
-            <AnimatePresence>
-              {feedback && (
-                <motion.p 
-                  initial={{ opacity: 0, height: 0 }} 
-                  animate={{ opacity: 1, height: 'auto' }} 
-                  className="text-[10px] text-indigo-400 mt-4 font-black uppercase tracking-widest bg-indigo-500/5 p-2 rounded-lg border border-indigo-500/10"
+
+            {/* Results */}
+            <AnimatePresence mode="wait">
+              {searchQuery.trim().length >= 2 && (
+                <motion.div
+                  key="results"
+                  initial={{ opacity: 0, y: -8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -8 }}
+                  className="space-y-2"
                 >
-                  {feedback}
-                </motion.p>
+                  {searchResults.length === 0 && !searching ? (
+                    <p className="text-center text-[10px] text-white/20 font-black uppercase tracking-widest py-4">
+                      No operatives found for "{searchQuery}"
+                    </p>
+                  ) : (
+                    searchResults.map(u => {
+                      const isFriend = friendIds.has(u.id);
+                      const isSent = sentIds.has(u.id);
+                      const isSending = sendingId === u.id;
+                      const err = sendErrors[u.id];
+                      const status = presence[u.id] || 'offline';
+
+                      return (
+                        <motion.div
+                          key={u.id}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/[0.03] border border-white/5 hover:border-indigo-500/20 hover:bg-white/[0.05] transition-all"
+                        >
+                          {/* Avatar */}
+                          <div className="relative shrink-0">
+                            <img
+                              src={`https://api.dicebear.com/9.x/bottts/svg?seed=${encodeURIComponent(u.username)}&backgroundColor=1e1b4b`}
+                              alt={u.username}
+                              className="w-10 h-10 rounded-xl border border-white/10 bg-indigo-950"
+                            />
+                            <div className={cn(
+                              'absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full border-2 border-[#0a0a0c]',
+                              status === 'online' ? 'bg-green-500 shadow-[0_0_6px_#22c55e]' :
+                              status === 'afk' ? 'bg-yellow-400' : 'bg-white/10'
+                            )} />
+                          </div>
+
+                          {/* Info */}
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-black text-white uppercase tracking-tight truncate">{u.username}</p>
+                            <p className={cn(
+                              'text-[9px] font-bold uppercase tracking-wider',
+                              status === 'online' ? 'text-green-400' : 'text-white/20'
+                            )}>{status}</p>
+                          </div>
+
+                          {/* Action */}
+                          <div className="shrink-0 flex flex-col items-end gap-1">
+                            {isFriend ? (
+                              <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1.5 rounded-xl">
+                                <UserCheck size={11} /> Connected
+                              </span>
+                            ) : isSent ? (
+                              <span className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-500/10 border border-indigo-500/20 px-3 py-1.5 rounded-xl">
+                                <Check size={11} /> Request Sent
+                              </span>
+                            ) : (
+                              <button
+                                onClick={() => handleSend(u.id, u.username)}
+                                disabled={isSending}
+                                className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-white bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 px-3 py-1.5 rounded-xl transition-all shadow-lg shadow-indigo-500/20"
+                              >
+                                {isSending
+                                  ? <Loader2 size={11} className="animate-spin" />
+                                  : <><UserPlus size={11} /> Add</>
+                                }
+                              </button>
+                            )}
+                            {err && (
+                              <p className="text-[9px] text-red-400 font-bold uppercase tracking-tight">{err}</p>
+                            )}
+                          </div>
+                        </motion.div>
+                      );
+                    })
+                  )}
+                </motion.div>
               )}
             </AnimatePresence>
+
           </div>
         </section>
 
