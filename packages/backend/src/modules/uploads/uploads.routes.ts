@@ -5,11 +5,25 @@ import { authMiddleware } from '../../common/middleware/auth.middleware';
 import { uploadImage, uploadFile } from '../../common/middleware/upload.middleware';
 import { AuthenticatedRequest } from '../../types';
 import { prisma } from '../../lib/prisma';
+import { getIo } from '../../lib/socket-instance';
 import { config } from '../../config/env';
 import { createError } from '../../common/middleware/error.middleware';
 
 const router = Router();
 router.use(authMiddleware as any);
+
+const msgSelect = {
+  id: true, roomId: true, content: true, isEdited: true,
+  createdAt: true, updatedAt: true,
+  sender: { select: { id: true, username: true } },
+  replyTo: {
+    select: {
+      id: true, content: true,
+      sender: { select: { id: true, username: true } },
+    },
+  },
+  attachments: true,
+};
 
 const wrap = (fn: (req: AuthenticatedRequest, res: Response, next: NextFunction) => Promise<void>) =>
   (req: any, res: Response, next: NextFunction) => fn(req, res, next);
@@ -34,7 +48,7 @@ router.post('/image/:roomId', uploadImage.single('file'), wrap(async (req, res, 
       targetMessageId = msg.id;
     }
 
-    const attachment = await prisma.attachment.create({
+    await prisma.attachment.create({
       data: {
         messageId: targetMessageId,
         filename: req.file.filename,
@@ -45,7 +59,13 @@ router.post('/image/:roomId', uploadImage.single('file'), wrap(async (req, res, 
       },
     });
 
-    res.status(201).json({ attachment, messageId: targetMessageId });
+    const fullMessage = await prisma.message.findUnique({
+      where: { id: targetMessageId },
+      select: msgSelect,
+    });
+
+    getIo().to(`room:${req.params.roomId}`).emit('message:new', fullMessage);
+    res.status(201).json({ message: fullMessage });
   } catch (err) { next(err); }
 }));
 
@@ -69,7 +89,7 @@ router.post('/file/:roomId', uploadFile.single('file'), wrap(async (req, res, ne
       targetMessageId = msg.id;
     }
 
-    const attachment = await prisma.attachment.create({
+    await prisma.attachment.create({
       data: {
         messageId: targetMessageId,
         filename: req.file.filename,
@@ -80,7 +100,13 @@ router.post('/file/:roomId', uploadFile.single('file'), wrap(async (req, res, ne
       },
     });
 
-    res.status(201).json({ attachment, messageId: targetMessageId });
+    const fullMessage = await prisma.message.findUnique({
+      where: { id: targetMessageId },
+      select: msgSelect,
+    });
+
+    getIo().to(`room:${req.params.roomId}`).emit('message:new', fullMessage);
+    res.status(201).json({ message: fullMessage });
   } catch (err) { next(err); }
 }));
 

@@ -2,7 +2,8 @@
   "permissions": {
     "allow": [
       "Read(//c/Users/Akushwaha/Desktop/DataArtProjects//**)",
-      "Bash(dir /c/Users/Akushwaha/Desktop/DataArtProjects/chat_server /A)"
+      "Bash(dir /c/Users/Akushwaha/Desktop/DataArtProjects/chat_server /A)",
+      "Bash(npx tsc *)"
     ]
   }
 }

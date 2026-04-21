@@ -3,6 +3,7 @@ import { Server, Socket } from 'socket.io';
 import { config } from '../config/env';
 import { verifyToken } from '../common/utils/jwt';
 import { prisma } from '../lib/prisma';
+import { setIo } from '../lib/socket-instance';
 import { registerTab, unregisterTab, heartbeat, getBulkPresence } from '../modules/presence/presence.service';
 import { sendMessage, editMessage, deleteMessage } from '../modules/messages/messages.service';
 import { v4 as uuidv4 } from 'uuid';
@@ -22,6 +23,8 @@ export function initSocket(httpServer: HttpServer) {
     pingInterval: 25000,
     pingTimeout: 60000,
   });
+
+  setIo(io);
 
   // Authentication middleware
   io.use(async (socket, next) => {

@@ -1,7 +1,7 @@
 import { redis, presenceKey, tabKey, lastActiveKey } from '../../lib/redis';
 import { PresenceStatus } from '../../types';
 
-const AFK_THRESHOLD_MS = 60 * 1000; // 1 minute
+const AFK_THRESHOLD_MS = 5 * 60 * 1000; // 5 minutes
 
 export async function registerTab(userId: string, tabId: string) {
   await redis.sadd(tabKey(userId), tabId);

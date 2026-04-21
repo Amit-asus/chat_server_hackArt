@@ -10,10 +10,11 @@ export async function getUserByUsername(username: string) {
 export async function searchUsers(query: string, excludeUserId: string) {
   return prisma.user.findMany({
     where: {
-      username: { contains: query, mode: 'insensitive' },
       id: { not: excludeUserId },
+      ...(query.trim() ? { username: { contains: query.trim(), mode: 'insensitive' } } : {}),
     },
     select: { id: true, username: true },
-    take: 20,
+    orderBy: { username: 'asc' },
+    take: 30,
   });
 }

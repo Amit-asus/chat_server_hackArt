@@ -10,7 +10,6 @@ router.use(authMiddleware as any);
 router.get('/search', (async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
     const q = (req.query.q as string) || '';
-    if (q.length < 2) { res.json({ users: [] }); return; }
     const users = await usersService.searchUsers(q, req.userId);
     res.json({ users });
   } catch (err) { next(err); }
