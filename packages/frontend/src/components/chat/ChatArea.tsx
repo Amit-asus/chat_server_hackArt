@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Hash, Lock, Users, Terminal, Info, ShieldCheck } from 'lucide-react';
+import { Hash, Lock, Users, Terminal, Info, ShieldCheck, UserPlus } from 'lucide-react';
 import { useChatStore } from '../../stores/chat.store';
 import MessageList from './MessageList';
 import MessageInput from './MessageInput';
 import { cn } from '../../lib/utils';
+import InviteUserModal from '../rooms/InviteUserModal';
 
 interface Props {
   onToggleMembers: () => void;
@@ -11,6 +13,7 @@ interface Props {
 
 export default function ChatArea({ onToggleMembers }: Props) {
   const { activeRoom } = useChatStore();
+  const [showInvite, setShowInvite] = useState(false);
 
   if (!activeRoom) return null;
 
@@ -66,13 +69,24 @@ export default function ChatArea({ onToggleMembers }: Props) {
         {/* Action Buttons */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => {}} // Could be room settings
+            onClick={() => {}}
             className="text-white/30 hover:text-white transition p-2 rounded-xl hover:bg-white/5 border border-transparent hover:border-white/10"
             title="System Info"
           >
             <Info size={18} />
           </button>
-          
+
+          {activeRoom.visibility === 'PRIVATE' && !activeRoom.isDirect && (
+            <button
+              onClick={() => setShowInvite(true)}
+              className="flex items-center gap-2 text-white/40 hover:text-amber-400 transition-all px-3 py-2 rounded-xl bg-white/[0.02] border border-white/5 hover:border-amber-500/30 hover:bg-amber-500/5 group"
+              title="Invite Operative"
+            >
+              <UserPlus size={18} className="group-hover:scale-110 transition-transform" />
+              <span className="text-[10px] font-black uppercase tracking-widest hidden sm:block">Invite</span>
+            </button>
+          )}
+
           <div className="w-px h-6 bg-white/5 mx-1" />
 
           <button
@@ -111,6 +125,13 @@ export default function ChatArea({ onToggleMembers }: Props) {
           <div className="animate-pulse">Buffer: Synced</div>
         </div>
       </div>
+
+      <InviteUserModal
+        open={showInvite}
+        onClose={() => setShowInvite(false)}
+        roomId={activeRoom.id}
+        roomName={activeRoom.name}
+      />
     </motion.div>
   );
 }

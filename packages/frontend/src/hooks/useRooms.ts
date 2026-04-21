@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '../lib/axios';
-import { Room, RoomMember } from '../types';
+import { Room, RoomMember, RoomInvitation } from '../types';
 
 export function useMyRooms() {
   return useQuery<Room[]>({
@@ -80,7 +80,32 @@ export function usePendingInvitations() {
     queryKey: ['rooms', 'invitations'],
     queryFn: async () => {
       const res = await api.get('/rooms/invitations');
-      return res.data.invitations;
+      return res.data.invitations as RoomInvitation[];
+    },
+    refetchInterval: 15_000,
+  });
+}
+
+export function useInviteUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ roomId, username }: { roomId: string; username: string }) => {
+      await api.post(`/rooms/${roomId}/invite`, { username });
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['rooms'] }),
+  });
+}
+
+export function useAcceptInvitation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (invitationId: string) => {
+      const res = await api.post(`/rooms/invitations/${invitationId}/accept`);
+      return res.data.room as Room;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['rooms', 'mine'] });
+      qc.invalidateQueries({ queryKey: ['rooms', 'invitations'] });
     },
   });
 }

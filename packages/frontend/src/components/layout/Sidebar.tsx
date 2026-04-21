@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Plus, ChevronDown, Hash, Lock, 
-  MessageCircle, Search, Radio, Shield, Users 
+import {
+  Plus, ChevronDown, Hash, Lock,
+  Search, Radio, Shield, Users, Bell, Check, X, Loader2, UserPlus
 } from 'lucide-react';
-import { useMyRooms } from '../../hooks/useRooms';
+import { useMyRooms, usePendingInvitations, useAcceptInvitation } from '../../hooks/useRooms';
 import { useFriends } from '../../hooks/useFriends';
 import { useChatStore } from '../../stores/chat.store';
 import { usePresenceStore } from '../../stores/presence.store';
@@ -24,8 +24,14 @@ export default function Sidebar() {
   const { user } = useAuthStore();
   const navigate = useNavigate();
 
+  const { data: invitations = [] } = usePendingInvitations();
+  const acceptInvitation = useAcceptInvitation();
+
   const [openSections, setOpenSections] = useState({ public: true, private: true, dms: true });
   const [showCreateRoom, setShowCreateRoom] = useState(false);
+  const [createPrivate, setCreatePrivate] = useState(false);
+  const [showInvitations, setShowInvitations] = useState(false);
+  const [acceptingId, setAcceptingId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
 
   const publicRooms = rooms.filter(r => r.visibility === 'PUBLIC' && !r.isDirect);
@@ -53,32 +59,135 @@ export default function Sidebar() {
     } catch {}
   };
 
+  const handleAccept = async (invId: string) => {
+    setAcceptingId(invId);
+    try {
+      const room = await acceptInvitation.mutateAsync(invId);
+      if (room) {
+        setShowInvitations(false);
+        selectRoom(room as Room);
+      }
+    } finally {
+      setAcceptingId(null);
+    }
+  };
+
   return (
     <>
       <aside className="w-72 bg-[#0a0a0c] border-r border-white/5 flex flex-col shrink-0 overflow-hidden relative">
-        {/* Futuristic Background Glow */}
+        {/* Background Glow */}
         <div className="absolute top-0 left-0 w-full h-32 bg-indigo-500/10 blur-[80px] -z-10" />
-        
-        {/* Search Header */}
-        <div className="p-4 relative">
-          <div className="relative group">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-indigo-400 transition-colors" size={16} />
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Jump to..."
-              className="w-full bg-white/[0.03] border border-white/5 text-white placeholder-white/20 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:bg-white/[0.06] transition-all"
-            />
+
+        {/* Search + Bell Header */}
+        <div className="p-4 relative space-y-2">
+          <div className="flex items-center gap-2">
+            <div className="relative group flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-white/30 group-focus-within:text-indigo-400 transition-colors" size={16} />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Jump to..."
+                className="w-full bg-white/[0.03] border border-white/5 text-white placeholder-white/20 rounded-xl pl-10 pr-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:bg-white/[0.06] transition-all"
+              />
+            </div>
+
+            {/* Invitations Bell */}
+            <button
+              onClick={() => setShowInvitations(v => !v)}
+              className={cn(
+                'relative flex items-center justify-center w-9 h-9 rounded-xl border transition-all shrink-0',
+                showInvitations
+                  ? 'bg-rose-500/15 border-rose-500/40 text-rose-400'
+                  : invitations.length > 0
+                    ? 'bg-rose-500/10 border-rose-500/20 text-rose-400 animate-pulse'
+                    : 'bg-white/[0.03] border-white/5 text-white/30 hover:text-white/60 hover:border-white/10'
+              )}
+              title="Room Invitations"
+            >
+              <Bell size={15} />
+              {invitations.length > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[16px] h-4 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 shadow-[0_0_8px_rgba(244,63,94,0.6)]">
+                  {invitations.length}
+                </span>
+              )}
+            </button>
           </div>
+
+          {/* Invitations Panel */}
+          <AnimatePresence initial={false}>
+            {showInvitations && (
+              <motion.div
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="rounded-2xl border border-rose-500/20 bg-rose-500/5 overflow-hidden">
+                  {/* Panel Header */}
+                  <div className="flex items-center justify-between px-3 py-2 border-b border-rose-500/10">
+                    <div className="flex items-center gap-2">
+                      <UserPlus size={12} className="text-rose-400" />
+                      <span className="text-[10px] font-black uppercase tracking-[0.2em] text-rose-400">
+                        Vault Invitations
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => setShowInvitations(false)}
+                      className="text-white/20 hover:text-white transition-colors"
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+
+                  {/* Invitation Cards */}
+                  <div className="p-2 space-y-1.5 max-h-48 overflow-y-auto scrollbar-none">
+                    {invitations.length === 0 ? (
+                      <p className="text-center text-[10px] text-white/20 font-bold uppercase tracking-widest py-3">
+                        No pending invitations
+                      </p>
+                    ) : (
+                      invitations.map((inv: any) => (
+                        <div
+                          key={inv.id}
+                          className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl bg-white/[0.03] border border-white/5 hover:border-rose-500/20 transition-all"
+                        >
+                          <div className="w-7 h-7 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center shrink-0">
+                            <Lock size={12} className="text-amber-400" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-xs font-bold text-white truncate">{inv.room.name}</p>
+                            <p className="text-[9px] text-white/30 truncate">
+                              invited by <span className="text-white/50">{inv.inviter.username}</span>
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleAccept(inv.id)}
+                            disabled={acceptingId === inv.id}
+                            className="shrink-0 flex items-center gap-1 text-[9px] font-black uppercase tracking-wider bg-emerald-500/10 hover:bg-emerald-500/20 disabled:opacity-50 text-emerald-400 border border-emerald-500/20 px-2.5 py-1.5 rounded-lg transition-all"
+                          >
+                            {acceptingId === inv.id
+                              ? <Loader2 size={10} className="animate-spin" />
+                              : <><Check size={10} /> Join</>
+                            }
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
         </div>
 
         <div className="flex-1 overflow-y-auto scrollbar-none px-3 pb-6 space-y-6">
-          
+
           {/* Public Channels */}
-          <SidebarSection 
-            title="HackArt Channels" 
+          <SidebarSection
+            title="HackArt Channels"
             icon={<Radio size={14} className="text-emerald-400" />}
-            isOpen={openSections.public} 
+            isOpen={openSections.public}
             onToggle={() => toggleSection('public')}
             onAdd={() => setShowCreateRoom(true)}
           >
@@ -95,12 +204,14 @@ export default function Sidebar() {
             ))}
           </SidebarSection>
 
-          {/* Private Channels */}
-          <SidebarSection 
-            title="Private Vaults" 
+          {/* Private Vaults */}
+          <SidebarSection
+            title="Private Vaults"
             icon={<Shield size={14} className="text-amber-400" />}
-            isOpen={openSections.private} 
+            isOpen={openSections.private}
             onToggle={() => toggleSection('private')}
+            onAdd={() => setCreatePrivate(true)}
+            addColor="amber"
           >
             {privateRooms.filter(r => r.name.toLowerCase().includes(search.toLowerCase())).map(room => (
               <RoomItem
@@ -113,13 +224,18 @@ export default function Sidebar() {
                 accentColor="amber"
               />
             ))}
+            {privateRooms.length === 0 && (
+              <p className="text-[10px] text-white/20 font-bold uppercase tracking-widest px-3 py-2">
+                No vaults — create one
+              </p>
+            )}
           </SidebarSection>
 
           {/* Direct Messages */}
-          <SidebarSection 
-            title="Active Operatives" 
+          <SidebarSection
+            title="Active Operatives"
             icon={<Users size={14} className="text-indigo-400" />}
-            isOpen={openSections.dms} 
+            isOpen={openSections.dms}
             onToggle={() => toggleSection('dms')}
           >
             {friends.map(({ friend, friendshipId }) => {
@@ -134,7 +250,7 @@ export default function Sidebar() {
                   name={friend.username}
                   unread={unreadCounts[dmKey] || 0}
                   onClick={() => openDM(friend.id)}
-                  isActive={activeRoom?.id === dmKey} // Adjust logic if needed
+                  isActive={activeRoom?.id === dmKey}
                 />
               );
             })}
@@ -144,32 +260,33 @@ export default function Sidebar() {
         {/* User Profile Bar */}
         <div className="p-4 bg-white/[0.02] border-t border-white/5 backdrop-blur-md">
           <div className="flex items-center gap-3">
-             <div className="relative">
-                <img
-                  src={`https://api.dicebear.com/9.x/bottts/svg?seed=${encodeURIComponent(user?.username ?? 'default')}&backgroundColor=1e1b4b`}
-                  alt={user?.username}
-                  className="w-9 h-9 rounded-full border border-white/10 shadow-lg shadow-indigo-500/20 bg-indigo-950"
-                />
-                <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-[#0a0a0c] rounded-full" />
-             </div>
-             <div className="flex-1 overflow-hidden">
-                <p className="text-sm font-bold text-white truncate">{user?.username}</p>
-                <p className="text-[10px] text-white/40 uppercase tracking-tighter">Status: Online</p>
-             </div>
+            <div className="relative">
+              <img
+                src={`https://api.dicebear.com/9.x/bottts/svg?seed=${encodeURIComponent(user?.username ?? 'default')}&backgroundColor=1e1b4b`}
+                alt={user?.username}
+                className="w-9 h-9 rounded-full border border-white/10 shadow-lg shadow-indigo-500/20 bg-indigo-950"
+              />
+              <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-[#0a0a0c] rounded-full" />
+            </div>
+            <div className="flex-1 overflow-hidden">
+              <p className="text-sm font-bold text-white truncate">{user?.username}</p>
+              <p className="text-[10px] text-white/40 uppercase tracking-tighter">Status: Online</p>
+            </div>
           </div>
         </div>
       </aside>
 
       <CreateRoomModal open={showCreateRoom} onClose={() => setShowCreateRoom(false)} />
+      <CreateRoomModal open={createPrivate} onClose={() => setCreatePrivate(false)} defaultVisibility="PRIVATE" />
     </>
   );
 }
 
-function SidebarSection({ title, icon, children, isOpen, onToggle, onAdd }: any) {
+function SidebarSection({ title, icon, children, isOpen, onToggle, onAdd, addColor = 'indigo' }: any) {
   return (
     <div className="space-y-1">
       <div className="flex items-center justify-between px-2 mb-1 group">
-        <button 
+        <button
           onClick={onToggle}
           className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-white/30 hover:text-white/60 transition-colors"
         >
@@ -178,7 +295,13 @@ function SidebarSection({ title, icon, children, isOpen, onToggle, onAdd }: any)
           <ChevronDown size={10} className={cn("transition-transform duration-300", !isOpen && "-rotate-90")} />
         </button>
         {onAdd && (
-          <button onClick={onAdd} className="text-white/20 hover:text-indigo-400 transition-colors">
+          <button
+            onClick={onAdd}
+            className={cn(
+              "text-white/20 transition-colors",
+              addColor === 'amber' ? "hover:text-amber-400" : "hover:text-indigo-400"
+            )}
+          >
             <Plus size={14} />
           </button>
         )}
@@ -205,16 +328,15 @@ function RoomItem({ name, icon, isActive, unread, onClick, accentColor = "indigo
       onClick={onClick}
       className={cn(
         'w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm transition-all duration-200 relative group',
-        isActive 
-          ? 'bg-indigo-500/10 text-white shadow-[inset_0_0_15px_rgba(99,102,241,0.1)]' 
+        isActive
+          ? 'bg-indigo-500/10 text-white shadow-[inset_0_0_15px_rgba(99,102,241,0.1)]'
           : 'text-white/50 hover:bg-white/[0.03] hover:text-white'
       )}
     >
-      {/* Active Indicator Line */}
       {isActive && (
-        <motion.div 
+        <motion.div
           layoutId="activeGlow"
-          className="absolute left-0 w-1 h-5 bg-indigo-500 rounded-r-full shadow-[0_0_10px_#6366f1]" 
+          className="absolute left-0 w-1 h-5 bg-indigo-500 rounded-r-full shadow-[0_0_10px_#6366f1]"
         />
       )}
 

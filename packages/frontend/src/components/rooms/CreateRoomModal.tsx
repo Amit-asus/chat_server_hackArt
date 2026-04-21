@@ -17,14 +17,15 @@ type FormData = z.infer<typeof schema>;
 interface Props {
   open: boolean;
   onClose: () => void;
+  defaultVisibility?: 'PUBLIC' | 'PRIVATE';
 }
 
-export default function CreateRoomModal({ open, onClose }: Props) {
+export default function CreateRoomModal({ open, onClose, defaultVisibility = 'PUBLIC' }: Props) {
   const createRoom = useCreateRoom();
   const [error, setError] = useState('');
   const { register, handleSubmit, reset, watch, formState: { errors, isSubmitting } } = useForm<FormData>({
     resolver: zodResolver(schema),
-    defaultValues: { visibility: 'PUBLIC' },
+    defaultValues: { visibility: defaultVisibility },
   });
 
   const selectedVisibility = watch('visibility');

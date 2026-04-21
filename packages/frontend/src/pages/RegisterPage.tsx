@@ -4,7 +4,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, User, Lock, ArrowRight, MessageSquare, CheckCircle2 } from 'lucide-react'; // Install lucide-react
+import { Mail, User, Lock, ArrowRight, MessageSquare, ShieldCheck, Cpu, Zap } from 'lucide-react';
 import api from '../lib/axios';
 
 const schema = z.object({
@@ -42,18 +42,20 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-white flex overflow-hidden">
-      {/* LEFT COLUMN: Branding & Visuals (Hidden on mobile) */}
+    <div className="min-h-screen bg-[#050507] flex overflow-hidden selection:bg-indigo-500/30">
+      {/* LEFT COLUMN: Cinematic Branding */}
       <motion.div 
         initial={{ x: -100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         transition={{ duration: 0.8, ease: "easeOut" }}
-        className="hidden lg:flex w-1/2 bg-indigo-600 relative items-center justify-center p-12 overflow-hidden"
+        className="hidden lg:flex w-1/2 bg-[#0a0a0c] relative items-center justify-center p-12 overflow-hidden border-r border-white/5"
       >
         {/* Animated Background Decor */}
-        <div className="absolute top-0 left-0 w-full h-full">
-          <div className="absolute top-[-10%] right-[-10%] w-64 h-64 bg-indigo-500 rounded-full blur-3xl opacity-50" />
-          <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-indigo-700 rounded-full blur-3xl opacity-50" />
+        <div className="absolute inset-0">
+          <div className="absolute top-[-10%] right-[-10%] w-80 h-80 bg-indigo-600 rounded-full blur-[120px] opacity-20 animate-pulse" />
+          <div className="absolute bottom-[-10%] left-[-10%] w-96 h-96 bg-purple-600 rounded-full blur-[120px] opacity-10" />
+          {/* Cyber Grid Effect */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:40px_40px] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
         </div>
 
         <div className="relative z-10 max-w-lg text-white">
@@ -61,35 +63,37 @@ export default function RegisterPage() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.3 }}
-            className="mb-8"
+            className="mb-12"
           >
-            <div className="w-16 h-16 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center mb-6 border border-white/20">
-              <MessageSquare size={32} className="text-white" />
+            <div className="w-16 h-16 bg-indigo-600/20 backdrop-blur-xl rounded-2xl flex items-center justify-center mb-8 border border-indigo-500/30 shadow-[0_0_30px_rgba(79,70,229,0.3)]">
+              <MessageSquare size={32} className="text-indigo-400" />
             </div>
-            <h1 className="text-5xl font-bold tracking-tight mb-4">
-              Connect with the <br /> 
-              <span className="text-indigo-200">future of chat.</span>
+            <h1 className="text-6xl font-black tracking-tighter mb-6 uppercase italic leading-none">
+              HackArt<span className="text-indigo-500">.OS</span> <br /> 
+              <span className="text-3xl text-white/50 not-italic font-medium tracking-normal">User Initialization</span>
             </h1>
-            <p className="text-indigo-100 text-lg">
-              Join thousands of developers and creators in our real-time collaborative workspace.
-            </p>
           </motion.div>
 
-          <div className="space-y-6">
+          <div className="space-y-8">
             {[
-              "Real-time end-to-end encryption",
-              "Unlimited group workspaces",
-              "Seamless file integration"
+              { icon: <ShieldCheck className="text-emerald-400" />, title: "Quantum Encryption", desc: "Military grade end-to-end security protocol." },
+              { icon: <Zap className="text-amber-400" />, title: "Instant Sync", desc: "Sub-millisecond data propagation across nodes." },
+              { icon: <Cpu className="text-indigo-400" />, title: "Neural Link", desc: "Advanced AI-driven communication interface." }
             ].map((feature, i) => (
               <motion.div 
                 key={i}
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.5 + (i * 0.1) }}
-                className="flex items-center space-x-3"
+                className="flex items-start space-x-4 group"
               >
-                <CheckCircle2 className="text-indigo-300" size={20} />
-                <span className="text-indigo-50 font-medium">{feature}</span>
+                <div className="p-2 bg-white/5 rounded-lg border border-white/10 group-hover:border-indigo-500/50 transition-colors">
+                  {feature.icon}
+                </div>
+                <div>
+                  <h4 className="text-white font-bold uppercase tracking-widest text-xs">{feature.title}</h4>
+                  <p className="text-white/40 text-sm mt-1">{feature.desc}</p>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -97,17 +101,17 @@ export default function RegisterPage() {
       </motion.div>
 
       {/* RIGHT COLUMN: Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gray-50/50">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
         <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
           className="w-full max-w-md"
         >
-          <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-gray-100 p-10">
-            <div className="mb-10">
-              <h2 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h2>
-              <p className="text-gray-500">Start your journey with us today.</p>
+          <div className="bg-[#0a0a0c]/60 backdrop-blur-3xl rounded-[2.5rem] shadow-2xl border border-white/5 p-10 sm:p-12 relative overflow-hidden">
+            <div className="mb-10 relative z-10">
+              <h2 className="text-4xl font-black text-white mb-2 uppercase tracking-tighter">Sign Up</h2>
+              <p className="text-white/30 text-xs font-bold uppercase tracking-[0.2em]">Deployment Phase: New Operative</p>
             </div>
 
             <AnimatePresence mode="wait">
@@ -116,88 +120,84 @@ export default function RegisterPage() {
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: 'auto', opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  className="bg-red-50 text-red-600 text-sm rounded-xl px-4 py-3 mb-6 border border-red-100 flex items-center"
+                  className="bg-red-500/10 text-red-400 text-xs font-bold rounded-xl px-4 py-3 mb-6 border border-red-500/20 flex items-center gap-2 uppercase tracking-tight"
                 >
-                  {error}
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-ping" />
+                  Alert: {error}
                 </motion.div>
               )}
             </AnimatePresence>
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider ml-1">Email Address</label>
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 relative z-10">
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] ml-1">Email Terminal</label>
+                <div className="relative group">
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-indigo-400 transition-colors" size={18} />
                   <input 
                     {...register('email')} 
                     type="email" 
-                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent rounded-2xl text-sm focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none" 
-                    placeholder="name@company.com" 
+                    className="w-full pl-12 pr-4 py-4 bg-white/[0.03] border border-white/5 rounded-2xl text-sm text-white placeholder-white/10 focus:bg-white/[0.05] focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none" 
+                    placeholder="OPERATIVE@NEXUS.SYSTEM" 
                   />
                 </div>
-                {errors.email && <p className="text-red-500 text-xs mt-1 ml-1">{errors.email.message}</p>}
+                {errors.email && <p className="text-red-500 text-[10px] font-bold mt-1 ml-1 uppercase">{errors.email.message}</p>}
               </div>
 
-              <div className="space-y-1">
-                <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider ml-1">Username</label>
-                <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] ml-1">Unique Identifier</label>
+                <div className="relative group">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-indigo-400 transition-colors" size={18} />
                   <input 
                     {...register('username')} 
-                    className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent rounded-2xl text-sm focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none" 
-                    placeholder="johndoe" 
+                    className="w-full pl-12 pr-4 py-4 bg-white/[0.03] border border-white/5 rounded-2xl text-sm text-white placeholder-white/10 focus:bg-white/[0.05] focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none" 
+                    placeholder="CALLSIGN" 
                   />
                 </div>
-                {errors.username && <p className="text-red-500 text-xs mt-1 ml-1">{errors.username.message}</p>}
+                {errors.username && <p className="text-red-500 text-[10px] font-bold mt-1 ml-1 uppercase">{errors.username.message}</p>}
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider ml-1">Password</label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] ml-1">Security Key</label>
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-indigo-400 transition-colors" size={18} />
                     <input 
                       {...register('password')} 
                       type="password" 
-                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent rounded-2xl text-sm focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none" 
+                      className="w-full pl-12 pr-4 py-4 bg-white/[0.03] border border-white/5 rounded-2xl text-sm text-white placeholder-white/10 focus:bg-white/[0.05] focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none" 
                       placeholder="••••••••" 
                     />
                   </div>
                 </div>
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-gray-400 uppercase tracking-wider ml-1">Confirm</label>
-                  <div className="relative">
-                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] ml-1">Verify Key</label>
+                  <div className="relative group">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-indigo-400 transition-colors" size={18} />
                     <input 
                       {...register('confirmPassword')} 
                       type="password" 
-                      className="w-full pl-12 pr-4 py-3 bg-gray-50 border border-transparent rounded-2xl text-sm focus:bg-white focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 transition-all outline-none" 
+                      className="w-full pl-12 pr-4 py-4 bg-white/[0.03] border border-white/5 rounded-2xl text-sm text-white placeholder-white/10 focus:bg-white/[0.05] focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/5 transition-all outline-none" 
                       placeholder="••••••••" 
                     />
                   </div>
                 </div>
               </div>
-              {(errors.password || errors.confirmPassword) && (
-                <p className="text-red-500 text-xs mt-1 ml-1">
-                  {errors.password?.message || errors.confirmPassword?.message}
-                </p>
-              )}
 
               <motion.button 
-                whileHover={{ scale: 1.01 }}
+                whileHover={{ scale: 1.02, boxShadow: "0 0 25px rgba(79, 70, 229, 0.4)" }}
                 whileTap={{ scale: 0.98 }}
                 type="submit" 
                 disabled={isSubmitting} 
-                className="w-full bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-bold py-4 rounded-2xl transition-all shadow-lg shadow-indigo-200 flex items-center justify-center space-x-2 mt-4"
+                className="w-full bg-indigo-600 hover:bg-indigo-500 disabled:bg-indigo-900/50 text-white font-black uppercase tracking-[0.2em] py-5 rounded-[1.5rem] transition-all flex items-center justify-center space-x-3 mt-4"
               >
-                <span>{isSubmitting ? 'Creating account...' : 'Get Started'}</span>
+                <span>{isSubmitting ? 'Syncing...' : 'Initialize Operative'}</span>
                 {!isSubmitting && <ArrowRight size={18} />}
               </motion.button>
             </form>
 
-            <p className="text-center text-sm text-gray-500 mt-8">
-              Already have an account?{' '}
-              <Link to="/login" className="text-indigo-600 hover:text-indigo-700 font-bold underline-offset-4 hover:underline transition-all">Sign in</Link>
+            <p className="text-center text-[10px] font-bold text-white/20 mt-10 uppercase tracking-widest">
+              Already Indexed?{' '}
+              <Link to="/login" className="text-indigo-500 hover:text-indigo-400 transition-colors ml-1 border-b border-indigo-500/20">Access Terminal</Link>
             </p>
           </div>
         </motion.div>

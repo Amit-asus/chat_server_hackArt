@@ -65,12 +65,15 @@ export default function PublicRoomsPage() {
           </div>
 
           <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
             onClick={() => setShowCreate(true)}
-            className="flex items-center justify-center gap-2 bg-white text-black font-black uppercase tracking-widest text-[11px] px-6 py-3.5 rounded-2xl shadow-[0_0_20px_rgba(255,255,255,0.2)] hover:bg-indigo-50 transition-all"
+            className="relative flex items-center justify-center gap-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-black uppercase tracking-widest text-[11px] px-6 py-3.5 rounded-2xl shadow-[0_0_30px_rgba(99,102,241,0.5)] hover:shadow-[0_0_40px_rgba(99,102,241,0.7)] transition-all overflow-hidden group"
           >
-            <Plus size={16} strokeWidth={3} /> Initialize Room
+            <span className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/10 to-white/0 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
+            <Sparkles size={14} strokeWidth={2.5} className="text-yellow-300 drop-shadow-[0_0_4px_rgba(253,224,71,0.8)]" />
+            <span>Initialize Room</span>
+            <Plus size={15} strokeWidth={3} className="opacity-80" />
           </motion.button>
         </header>
 
